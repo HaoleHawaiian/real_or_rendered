@@ -13,7 +13,7 @@ A key part of our result analysis will include robustness testing, creating adve
 ## 3. Resources and Related Work
 The most famous example of a neural network architecture that generates its own images to attempt to fool a network is the [Generative Adversarial Network](https://arxiv.org/pdf/1701.00160). This network trains a generator to make fake images, and a discriminator to distinguish them.
 
-Among specific models used to distinguish real or fake images, we can point to the research-based [DIRE](https://arxiv.org/pdf/2303.09295) or [De-FAKE](https://arxiv.org/pdf/2210.06998) detectors, as well as the commercial detectors [Hive AI](https://thehive.ai/), [Optic](https://www.aiornot.com/), and [Illuminarty](https://illuminarty.ai/en/), which were compared by [Ha et. al](https://arxiv.org/pdf/2402.03214). Other methodologies include the uncertainty based [WePe](https://arxiv.org/pdf/2412.05897v1), and the perturbation based [RIGID](https://arxiv.org/abs/2405.20112).
+Among specific models used to distinguish real or fake images, we can point to the research-based [DIRE](https://arxiv.org/pdf/2303.09295) or [De-FAKE](https://arxiv.org/pdf/2210.06998) detectors, as well as the commercial detectors [Hive AI](https://thehive.ai/), [Optic](https://www.aiornot.com/), and [Illuminarty](https://illuminarty.ai/en/), which were compared by [Ha et. al](https://arxiv.org/pdf/2402.03214). Other methodologies include the uncertainty based [WePe](https://arxiv.org/pdf/2412.05897v1), and the perturbation based [RIGID](https://arxiv.org/pdf/2405.20112).
 
 ## 4. Datasets
 [Kaggle dataset](https://www.kaggle.com/datasets/alessandrasala79/ai-vs-human-generated-dataset/data)
