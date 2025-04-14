@@ -8,7 +8,7 @@ def install(package):
 try:
     import kagglehub
 except ImportError:
-    print 'kagglehub is not installed. Installing it now.'
+    print('kagglehub is not installed. Installing it now.')
     install('kagglehub')
 
 
