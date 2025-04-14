@@ -1,3 +1,23 @@
+# Data
+AI vs Human
+https://www.kaggle.com/competitions/detect-ai-vs-human-generated-images/overview
+
+Set up a folder called 'data' in your base directory. The contents of 'data' are downloaded from the above and are:
+- test_data_v2
+- train_data
+- test.csv
+- train.csv
+
+# Environment
+This environment uses the same ones as A4, but with the following additions:
+- kagglehub: importing data via API
+- albumentations: image augmentation. much faster than torchvision
+
+
+
+
+---
+
 # Real or Rendered
 ## 1. Project Summary
 Several years ago, AI images were easy to spot, as they were generally nonsensical or overly cartoonish. Now, with recent AI technological advancements, AI generated imagery is increasingly difficult to differentiate from real images, or images created by a human. This is especially relevant in cases of public opinion and political misinformation, as well as security and fraud prevention. We seek to use deep learning methods to help distinguish between the images to establish authenticity and transparency.
