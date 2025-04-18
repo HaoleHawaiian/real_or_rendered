@@ -2,14 +2,16 @@ import os
 import pandas as pd
 from PIL import Image
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision import transforms
 
 
 class CustomImageDataset(Dataset):
     # https://pytorch.org/tutorials/beginner/basics/data_tutorial.html
     def __init__(self, csv_path, image_folder, transform=None):
-        self.img_labels = pd.read_csv(csv_path, header=None, names=['file_name', 'label'])
+        df = pd.read_csv(csv_path)
+        df = df[df['label'].isin([0, 1])]
+        self.img_labels = df.reset_index(drop=True)
         self.img_dir = image_folder
         self.transform = transform
 
@@ -25,27 +27,39 @@ class CustomImageDataset(Dataset):
             image = self.transform(image)
         return image, label
 
-
-def get_dataloader(csv_path, image_folder, image_size=(224, 224), batch_size=32, shuffle=True):
-    transform = transforms.Compose([
-        transforms.Resize(image_size),
-        transforms.ToTensor()
-    ])
+def get_dataloader(csv_path='data/train.csv', image_folder='data/train_data', image_size=(224, 224), batch_size=32, shuffle=True):
+    transform = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor()])
     dataset = CustomImageDataset(csv_path, image_folder, transform=transform)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
     return dataloader, dataset
+
+def get_train_test_loaders(csv_path='data/train.csv', image_folder='data/train_data', image_size=(224, 224), batch_size=32, split_ratio=0.8):
+    transform = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor()])
+    dataset = CustomImageDataset(csv_path, image_folder, transform=transform)
+
+    train_size = int(split_ratio * len(dataset))
+    test_size = len(dataset) - train_size
+    train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+    return train_loader, test_loader, train_dataset, test_dataset
 
 if __name__ == "__main__":
     csv_path = 'data/train.csv'
     image_folder = 'data/train_data'
 
-    dataloader, dataset = get_dataloader(csv_path, image_folder)
+    train_loader, test_loader, train_set, test_set = get_train_test_loaders(csv_path, image_folder)
 
-    # Preview one batch
-    for images, labels in dataloader:
-        print("Image batch shape:", images.shape)
-        print("Label batch shape:", labels.shape)
+    for images, labels in train_loader:
+        print("Train batch shape:", images.shape)
+        print("Train labels shape:", labels.shape)
         break
 
-    print(f"Total images in dataset: {len(dataset)}")
+    for images, labels in test_loader:
+        print("Test batch shape:", images.shape)
+        print("Test labels shape:", labels.shape)
+        break
 
+    print(f"Total images in train set: {len(train_set)}")
+    print(f"Total images in test set: {len(test_set)}")
