@@ -25,12 +25,29 @@ class CustomImageDataset(Dataset):
         label = int(self.img_labels.loc[idx, 'label'])
         if self.transform:
             image = self.transform(image)
-        return image, label
+        return image, label, img_path
+
+class UnlabeledImageDataset(Dataset):
+    def __init__(self, image_folder, transform=None):
+        self.image_folder = image_folder
+        self.image_paths = [os.path.join(image_folder, f)
+                            for f in os.listdir(image_folder)
+                            if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.image_paths)
+
+    def __getitem__(self, idx):
+        image = Image.open(self.image_paths[idx]).convert('RGB')
+        if self.transform:
+            image = self.transform(image)
+        return image, self.image_paths[idx]
 
 def get_dataloader(csv_path='data/train.csv', image_folder='data/train_data', image_size=(224, 224), batch_size=32, shuffle=True):
     transform = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor()])
     dataset = CustomImageDataset(csv_path, image_folder, transform=transform)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=4)
     return dataloader, dataset
 
 def get_train_test_loaders(csv_path='data/train.csv', image_folder='data/train_data', image_size=(224, 224), batch_size=32, split_ratio=0.8):
@@ -41,9 +58,15 @@ def get_train_test_loaders(csv_path='data/train.csv', image_folder='data/train_d
     test_size = len(dataset) - train_size
     train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
     return train_loader, test_loader, train_dataset, test_dataset
+
+def get_unlabeled_loader(image_folder='data/test_data_v2', image_size=(224, 224), batch_size=32):
+    transform = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor()])
+    dataset = UnlabeledImageDataset(image_folder, transform=transform)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+    return dataloader, dataset
 
 if __name__ == "__main__":
     csv_path = 'data/train.csv'
