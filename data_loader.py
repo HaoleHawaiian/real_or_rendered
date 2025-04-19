@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader, random_split, Subset
 from torchvision import transforms
 from data_augmentation import get_train_transform, get_test_transform
-
+from data_attack import get_attack_transform
 
 
 class CustomImageDataset(Dataset):
@@ -63,10 +63,12 @@ def get_train_test_loaders(csv_path='data/train.csv', image_folder='data/train_d
     if augmentation:
         train_transform = get_train_transform(image_size)
         test_transform = get_test_transform(image_size)
+        attack_transform = get_attack_transform(image_size)
     else:
         # Use the transformation already written
         train_transform = transform
         test_transform = transform
+        attack_transform = get_attack_transform(image_size)
 
     # Split the data into train and test
     total_size = len(dataset)
@@ -80,18 +82,21 @@ def get_train_test_loaders(csv_path='data/train.csv', image_folder='data/train_d
     train_indices, test_indices = indices[:train_size], indices[train_size:]
     
     # Create subsets with transform
-    train_dataset = CustomImageDataset(csv_path, image_folder, transform=train_transform)
-    test_dataset = CustomImageDataset(csv_path, image_folder, transform=test_transform)
+    train_full_dataset = CustomImageDataset(csv_path, image_folder, transform=train_transform)
+    test_full_dataset = CustomImageDataset(csv_path, image_folder, transform=test_transform)
+    attack_full_dataset = CustomImageDataset(csv_path, image_folder, transform=attack_transform)
 
     # Wrap in Subset to use the indices
-    train_dataset = Subset(train_dataset, train_indices)
-    test_dataset = Subset(test_dataset, test_indices)
+    train_dataset = Subset(train_full_dataset, train_indices)
+    test_dataset = Subset(test_full_dataset, test_indices)
+    attack_dataset = Subset(attack_full_dataset, test_indices)
 
     # Create dataloaders
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=8)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=8)
+    attack_loader = DataLoader(attack_dataset, batch_size=batch_size, shuffle=False, num_workers=8)
 
-    return train_loader, test_loader, train_dataset, test_dataset
+    return train_loader, test_loader, attack_loader, train_dataset, test_dataset, attack_dataset
 
 def get_unlabeled_loader(image_folder='data/test_data_v2', image_size=(224, 224), batch_size=32):
     transform = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
@@ -103,17 +108,22 @@ if __name__ == "__main__":
     csv_path = 'data/train.csv'
     image_folder = 'data/train_data'
 
-    train_loader, test_loader, train_set, test_set = get_train_test_loaders(csv_path, image_folder)
+    train_loader, test_loader, attack_loader, train_dataset, test_dataset, attack_dataset = get_train_test_loaders(csv_path, image_folder)
 
-    for images, labels in train_loader:
+    for images, labels, _ in train_loader:
         print("Train batch shape:", images.shape)
         print("Train labels shape:", labels.shape)
         break
 
-    for images, labels in test_loader:
+    for images, labels, _ in test_loader:
         print("Test batch shape:", images.shape)
         print("Test labels shape:", labels.shape)
         break
-
-    print(f"Total images in train set: {len(train_set)}")
-    print(f"Total images in test set: {len(test_set)}")
+    
+    for images, labels, _ in attack_loader:
+        print("Attack test batch shape:", images.shape)
+        print("Attack test labels shape:", labels.shape)
+        break
+    print(f"Total images in train set: {len(train_dataset)}")
+    print(f"Total images in test set: {len(test_dataset)}")
+    print(f"Total images in attack test set: {len(attack_dataset)}")
