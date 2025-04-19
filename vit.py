@@ -6,7 +6,8 @@ Created on Tue Apr 15 17:33:17 2025
 """
 # Machine Learning
 import torch
-from transformers import ViTForImageClassification, ViTImageProcessor 
+from transformers import ViTForImageClassification, ViTImageProcessor, logging
+logging.set_verbosity_error()
 # https://huggingface.co/docs/transformers/en/model_doc/vit
 # https://github.com/huggingface/transformers/blob/v4.51.3/src/transformers/models/vit/modeling_vit.py#L780
 # https://github.com/huggingface/transformers/blob/v4.51.3/src/transformers/models/vit/image_processing_vit.py#L42
@@ -41,10 +42,12 @@ class ViTTrainer:
         print(f"Using device: {self.device}")
 
         # Load pretrained model and processor
-        self.model = ViTForImageClassification.from_pretrained('google/vit-base-patch16-224-in21k', num_labels=2).to(self.device)
+        # self.model = ViTForImageClassification.from_pretrained('google/vit-base-patch16-224-in21k', num_labels=2).to(self.device)
+        # self.processor = ViTImageProcessor.from_pretrained('google/vit-base-patch16-224-in21k')
+        self.model = ViTForImageClassification.from_pretrained('facebook/deit-tiny-distilled-patch16-224', num_labels=2).to(self.device)
+        self.processor = ViTImageProcessor.from_pretrained('facebook/deit-tiny-distilled-patch16-224')
 
-        self.processor = ViTImageProcessor.from_pretrained('google/vit-base-patch16-224-in21k')
-
+        
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.AdamW(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
 
@@ -60,11 +63,12 @@ class ViTTrainer:
             print(f"\nEpoch {epoch + 1} starting...")
 
             # Anaconda prompt output description
-            for inputs, labels in tqdm(self.train_loader, desc = f"Epoch {epoch+1} - Training"):
+            for images, labels, _ in tqdm(self.train_loader, desc = f"Epoch {epoch+1} - Training"):
+                inputs = images.to(self.device)
+                labels = labels.to(self.device)
                 
                 # Forward Pass
-                inputs, labels = inputs.to(self.device), labels.to(self.device)
-                outputs = self.model(pixel_values = inputs).logits
+                outputs = self.model(pixel_values=inputs).logits
                 loss = self.criterion(outputs, labels)
 
                 # Backward Pass
@@ -98,16 +102,17 @@ class ViTTrainer:
         total = 0
 
         with torch.no_grad():
-            for inputs, labels in tqdm(self.val_loader, desc = "Validating"):
-                inputs, labels = inputs.to(self.device), labels.to(self.device)
-                outputs = self.model(pixel_values = inputs).logits
+            for images, labels, _ in tqdm(self.val_loader, desc="Validating"):
+                inputs = images.to(self.device)
+                labels = labels.to(self.device)
+                outputs = self.model(pixel_values=inputs).logits
                 loss = self.criterion(outputs, labels)
                 val_loss += loss.item()
-
+    
                 _, preds = torch.max(outputs, 1)
                 correct += (preds == labels).sum().item()
                 total += labels.size(0)
-
+    
         avg_val_loss = val_loss / len(self.val_loader)
         val_acc = correct / total
         print(f"Val Loss: {avg_val_loss:.4f}, Accuracy: {val_acc * 100:.2f}%")
@@ -147,19 +152,19 @@ class ViTTrainer:
         all_labels = []
 
         with torch.no_grad():
-            for inputs, labels in tqdm(self.val_loader, desc = "Evaluating Best Model"):
-                inputs, labels = inputs.to(self.device), labels.to(self.device)
-                outputs = self.model(pixel_values = inputs).logits
+            for images, labels, _ in tqdm(self.val_loader, desc="Evaluating Best Model"):
+                inputs = images.to(self.device)
+                labels = labels.to(self.device)
+                outputs = self.model(pixel_values=inputs).logits
                 _, preds = torch.max(outputs, 1)
-
+    
                 all_preds.extend(preds.cpu().numpy())
                 all_labels.extend(labels.cpu().numpy())
 
         # Confusion Matrix
         cm = confusion_matrix(all_labels, all_preds)
         plt.figure(figsize = (6, 5))
-        sns.heatmap(cm, annot = True, fmt = 'd', cmap = 'Blues',
-                    xticklabels = ['Real', 'Rendered'], yticklabels = ['Real', 'Rendered'])
+        sns.heatmap(cm, annot = True, fmt = 'd', cmap = 'Blues', xticklabels = ['Real', 'Rendered'], yticklabels = ['Real', 'Rendered'])
         plt.xlabel('Predicted')
         plt.ylabel('True')
         plt.title('Confusion Matrix')
@@ -188,7 +193,7 @@ if __name__ == "__main__":
         train_loader=train_loader,
         test_loader=test_loader,
         save_path='best_vit_model.pth',
-        num_epochs=1,
+        num_epochs=10,
         lr=2e-5,
         weight_decay=0.01
     )
