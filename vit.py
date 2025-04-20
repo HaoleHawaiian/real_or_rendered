@@ -173,7 +173,7 @@ class ViTTrainer:
         plt.show()
 
         # Classification Report
-        report = classification_report(all_labels, all_preds, target_names = ['Real', 'Rendered'], digits = 2)
+        report = classification_report(all_labels, all_preds, target_names = ['Real', 'Rendered'], digits = 4)
         print("Classification Report:\n")
         print(report)
 
@@ -194,7 +194,7 @@ if __name__ == "__main__":
         test_loader=test_loader,
         save_path='best_vit_model.pth',
         num_epochs=10,
-        lr=2e-5,
+        lr=2e-4,
         weight_decay=0.01
     )
 
