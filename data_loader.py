@@ -54,8 +54,8 @@ def get_dataloader(csv_path='data/train.csv', image_folder='data/train_data', im
     return dataloader, dataset
 
 
-def get_train_test_loaders(csv_path='data/train.csv', image_folder='data/train_data', image_size=(224, 224), batch_size=32, split_ratio=0.8, augmentation=True):
-
+def get_train_test_loaders(csv_path='data/train.csv', image_folder='data/train_data', image_size=(224, 224), batch_size=32, split_ratio=0.8, augmentation=True, attack_style='SaltAndPepper'):
+    #attack style options: SaltAndPepper, Posterize, GaussNoise, RandomShadow
     transform = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
     dataset = CustomImageDataset(csv_path, image_folder, transform=None)
 
@@ -63,12 +63,12 @@ def get_train_test_loaders(csv_path='data/train.csv', image_folder='data/train_d
     if augmentation:
         train_transform = get_train_transform(image_size)
         test_transform = get_test_transform(image_size)
-        attack_transform = get_attack_transform(image_size)
+        attack_transform = get_attack_transform(image_size, attack_style='SaltAndPepper')
     else:
         # Use the transformation already written
         train_transform = transform
         test_transform = transform
-        attack_transform = get_attack_transform(image_size)
+        attack_transform = get_attack_transform(image_size, attack_style='SaltAndPepper')
 
     # Split the data into train and test
     total_size = len(dataset)
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     csv_path = 'data/train.csv'
     image_folder = 'data/train_data'
 
-    train_loader, test_loader, attack_loader, train_dataset, test_dataset, attack_dataset = get_train_test_loaders(csv_path, image_folder)
+    train_loader, test_loader, attack_loader, train_dataset, test_dataset, attack_dataset = get_train_test_loaders(csv_path, image_folder, attack_style='SaltAndPepper')
 
     for images, labels, _ in train_loader:
         print("Train batch shape:", images.shape)
