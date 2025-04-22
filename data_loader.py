@@ -54,7 +54,7 @@ def get_dataloader(csv_path='data/train.csv', image_folder='data/train_data', im
     return dataloader, dataset
 
 
-def get_train_test_loaders(csv_path='data/train.csv', image_folder='data/train_data', image_size=(224, 224), batch_size=32, split_ratio=0.8, augmentation=True, attack_style='SaltAndPepper'):
+def get_train_test_loaders(csv_path='data/train.csv', image_folder='data/train_data', image_size=(224, 224), train_batch_size=32, test_batch_size=32,attack_batch_size=32,split_ratio=0.8, augmentation=True, attack_style='SaltAndPepper'):
     #attack style options: SaltAndPepper, Posterize, GaussNoise, RandomShadow
     transform = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
     dataset = CustomImageDataset(csv_path, image_folder, transform=None)
@@ -92,9 +92,9 @@ def get_train_test_loaders(csv_path='data/train.csv', image_folder='data/train_d
     attack_dataset = Subset(attack_full_dataset, test_indices)
 
     # Create dataloaders
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=8)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=8)
-    attack_loader = DataLoader(attack_dataset, batch_size=batch_size, shuffle=False, num_workers=8)
+    train_loader = DataLoader(train_dataset, batch_size=train_batch_size, shuffle=True, num_workers=8)
+    test_loader = DataLoader(test_dataset, batch_size=test_batch_size, shuffle=False, num_workers=8)
+    attack_loader = DataLoader(attack_dataset, batch_size=attack_batch_size, shuffle=False, num_workers=8)
 
     return train_loader, test_loader, attack_loader, train_dataset, test_dataset, attack_dataset
 
