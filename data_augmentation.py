@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import torch
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
@@ -19,14 +17,14 @@ class AlbumentationsTransform:
             int: fkdsjfdsf
       """
       def __init__(self, augmentations):
-            self.augment = augmentations          # augmentation from albumentations
+            self.augment = augmentations                                                  # augmentation from albumentations
 
       def __call__(self, img):
             """
             Convert image (PIL) to numpy array, then applies augmentation
             """
             img = np.array(img)
-            augmented = self.augment(image=img)   # augmented is a dictionary with keys like 'image'
+            augmented = self.augment(image=img)                                           # augmented is a dictionary with keys like 'image'
             return augmented['image']
 
 def get_train_transform(image_size=(224, 224)):
@@ -42,10 +40,10 @@ def get_train_transform(image_size=(224, 224)):
       """
       output = AlbumentationsTransform(
             A.Compose([
-                  A.Resize(*image_size),             # resize to desired size for consistency
-                  A.HorizontalFlip(p=0.5),           # flip horizontally with p% chance
-                  A.RandomBrightnessContrast(p=0.2), # bright and contrast with p% chance
-                  A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]), # normalize using ImageNet mean and std
+                  A.Resize(*image_size),                                                  # resize to desired size for consistency
+                  A.HorizontalFlip(p=0.5),                                                # flip horizontally with p% chance
+                  A.RandomBrightnessContrast(p=0.2),                                      # bright and contrast with p% chance
+                  A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),     # normalize using ImageNet mean and std
                   ToTensorV2()                       # convert back to tensor
             ])
       )
@@ -61,9 +59,9 @@ def get_test_transform(image_size=(224, 224)):
       """
       output = AlbumentationsTransform(
             A.Compose([
-                  A.Resize(*image_size),             # resize to desired size for consistency
-                  A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]), # normalize using ImageNet mean and std
-                  ToTensorV2()                       # convert back to tensor
+                  A.Resize(*image_size),                                                  # resize to desired size for consistency
+                  A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),     # normalize using ImageNet mean and std
+                  ToTensorV2()                                                            # convert back to tensor
             ])
       )
       return output
