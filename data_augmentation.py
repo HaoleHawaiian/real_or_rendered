@@ -14,7 +14,7 @@ class AlbumentationsTransform:
       Args:
             img: numpy array
       Returns:
-            int: fkdsjfdsf
+            img: augmented image
       """
       def __init__(self, augmentations):
             self.augment = augmentations                                                  # augmentation from albumentations
