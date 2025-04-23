@@ -16,11 +16,9 @@ from torch import nn, optim
 # from torchvision import transforms
 
 # Viz, analysis
-import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import classification_report
 # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html
 # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html
-import seaborn as sns
 # https://medium.com/@dtuk81/confusion-matrix-visualization-fc31e3f30fea
 from tqdm import tqdm
 # https://tqdm.github.io/
@@ -118,30 +116,6 @@ class ViTTrainer:
         print(f"Val Loss: {avg_val_loss:.4f}, Accuracy: {val_acc * 100:.2f}%")
         return avg_val_loss, val_acc
 
-    # Visualizations -- NOT NEEDED FOR CALCULATIONS
-    # def plot_curves(self):
-    #     plt.figure(figsize = (10, 4))
-
-    #     # Loss curve
-    #     plt.subplot(1, 2, 1)
-    #     plt.plot(self.train_losses, label = "Train Loss")
-    #     plt.plot(self.val_losses, label = "Val Loss")
-    #     plt.xlabel("Epoch")
-    #     plt.ylabel("Loss")
-    #     plt.title("Loss Curve")
-    #     plt.legend()
-
-    #     # Accuracy curve
-    #     plt.subplot(1, 2, 2)
-    #     plt.plot([acc * 100 for acc in self.val_accuracies], label = "Val Accuracy", color = 'green')
-    #     plt.xlabel("Epoch")
-    #     plt.ylabel("Accuracy (%)")
-    #     plt.title("Validation Accuracy")
-    #     plt.legend()
-
-    #     plt.tight_layout()
-    #     plt.savefig("training_curves.png")
-    #     plt.show()
 
     def evaluate(self):
         # Load best model
@@ -160,17 +134,6 @@ class ViTTrainer:
     
                 all_preds.extend(preds.cpu().numpy())
                 all_labels.extend(labels.cpu().numpy())
-
-        # Confusion Matrix
-        cm = confusion_matrix(all_labels, all_preds)
-        plt.figure(figsize = (6, 5))
-        sns.heatmap(cm, annot = True, fmt = 'd', cmap = 'Blues', xticklabels = ['Real', 'Rendered'], yticklabels = ['Real', 'Rendered'])
-        plt.xlabel('Predicted')
-        plt.ylabel('True')
-        plt.title('Confusion Matrix')
-        plt.tight_layout()
-        plt.savefig("confusion_matrix.png")
-        plt.show()
 
         # Classification Report
         report = classification_report(all_labels, all_preds, target_names = ['Real', 'Rendered'], digits = 4)
@@ -193,7 +156,7 @@ if __name__ == "__main__":
         train_loader=train_loader,
         test_loader=test_loader,
         save_path='best_vit_model.pth',
-        num_epochs=10,
+        num_epochs=40,
         lr=2e-4,
         weight_decay=0.01
     )
