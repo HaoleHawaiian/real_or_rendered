@@ -155,7 +155,7 @@ class FGSMAttacker:
                 init_pred = output.logits.max(1, keepdim=True)[1]
     
                 if init_pred.item() != label.item():
-                    continue  # Skip if initially misclassified
+                    continue  
     
                 loss = F.cross_entropy(output.logits, label)
                 self.model.zero_grad()
@@ -166,8 +166,6 @@ class FGSMAttacker:
                 perturbed_image = self._fgsm_attack(image_denorm, epsilon, data_grad)
                 perturbed_image_norm = self.normalize(perturbed_image)
     
-                # Optional debug print
-                # print("Perturbation mean abs diff:", (perturbed_image - image_denorm).abs().mean().item())
     
                 output = self.model(perturbed_image_norm)
                 final_pred = output.logits.max(1, keepdim=True)[1]
