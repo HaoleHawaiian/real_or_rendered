@@ -18,7 +18,16 @@ Among specific models used to distinguish real or fake images, we can point to t
 ## 4. Datasets
 [Kaggle dataset](https://www.kaggle.com/datasets/alessandrasala79/ai-vs-human-generated-dataset/data)
 
-## 5. Group Members
+## 5. Relevant Files
+models/efficientnetb0.py
+models/juanchitocnn.py
+models/visiontransformer.py
+data_loader.py
+data_attack.py
+data_augmentation.py
+
+
+## 6. Group Members
 Juan Raul de la Guardia jguardia7@gatech.edu
 Pong-Ravee Halelamien win.halelamien@gatech.edu
 Ethan Maluhia Roberts eroberts68@gatech.edu
