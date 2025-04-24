@@ -1,13 +1,42 @@
 import os
-from tqdm import tqdm
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from torchvision import models, transforms
 import torch.nn.functional as F
+import torch.optim as optim
+from tqdm import tqdm
 from data_loader import get_train_test_loaders
 
-class ProjectEfficientNet:
+class ClassifierModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.block1 = nn.Sequential(
+            nn.Conv2d(3, 6, 3),
+            nn.BatchNorm2d(6),
+            nn.ReLU()
+        )
+        self.block2 = nn.Sequential(
+            nn.Conv2d(6, 12, 4),
+            nn.BatchNorm2d(12),
+            nn.ReLU()
+        )
+        self.block3 = nn.Sequential(
+            nn.Conv2d(12, 24, 5),
+            nn.BatchNorm2d(24),
+            nn.ReLU()
+        )
+        self.pool = nn.MaxPool2d(2, 2)
+        self.fc1 = nn.Linear(24 * 25 * 25, 2)
+
+
+    def forward(self, x):
+        x = self.pool(self.block1(x))
+        x = self.pool(self.block2(x))
+        x = self.pool(self.block3(x))
+        x = torch.flatten(x, 1) # flatten all dimensions except batch
+        x = self.fc1(x)
+        return x
+
+class ProjectJuanchitoCNN:
 
     def __init__(self, epochs=5, learning_rate=0.001, batch_size=16):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -15,11 +44,11 @@ class ProjectEfficientNet:
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.num_classes = 2
-        self.model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
-        self.model.classifier[1] = nn.Linear(self.model.classifier[1].in_features, self.num_classes)
-        self.model = self.model.to(self.device)
+        self.model = ClassifierModel().to(self.device)
+        self.momentum = 0.9
+
         self.criterion = nn.CrossEntropyLoss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        self.optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=self.momentum)
 
         self.train_loader = None
         self.test_loader = None
@@ -38,8 +67,6 @@ class ProjectEfficientNet:
         self.attack_set = attack_set
 
     def train(self):
-        self.model.train()
-
         for epoch in range(self.epochs):
             running_loss = 0.0
             progress_bar = tqdm(self.train_loader, desc=f'Epoch {epoch + 1}/{self.epochs}', leave=False, unit='batch')
@@ -47,12 +74,15 @@ class ProjectEfficientNet:
                 images = images.to(self.device)
                 labels = labels.to(self.device)
 
+                # zero the parameter gradients
                 self.optimizer.zero_grad()
+
+                # forward + backward + optimize
                 outputs = self.model(images)
                 loss = self.criterion(outputs, labels)
                 loss.backward()
                 self.optimizer.step()
-
+                # print statistics
                 running_loss += loss.item()
                 avg_loss = running_loss / (i + 1)
                 progress_bar.set_postfix({'loss': f'{avg_loss:.4f}'})
@@ -63,12 +93,12 @@ class ProjectEfficientNet:
             os.makedirs('saved_models')
             print(f"Created directory: {'saved_models'}")
 
-        full_save_path = os.path.join('saved_models', f'efficientnet_b0_model.pth')
+        full_save_path = os.path.join('saved_models', f'JuanchitoCNN.pth')
 
         torch.save(self.model.state_dict(), full_save_path)
         print(f'Model state dictionary saved to: {full_save_path}')
 
-    def model_load(self, file='saved_models/efficientnet_b0_model.pth'):
+    def model_load(self, file='saved_models/JuanchitoCNN.pth'):
         self.model.load_state_dict(torch.load(file))
 
     def evaluate(self):
