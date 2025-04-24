@@ -142,43 +142,49 @@ class FGSMAttacker:
     def attack(self, test_loader, epsilon):
         correct = 0
         adv_examples = []
-
+    
         for i, (data, target, _) in enumerate(test_loader):
             data, target = data.to(self.device), target.to(self.device)
-            data.requires_grad = True
-
-            output = self.model(data)
-            init_pred = output.logits.max(1, keepdim=True)[1]  # Get the predicted class
-
-            # Compare the predictions for all elements in the batch
-            correct_batch = (init_pred.squeeze() == target).sum().item()
-            correct += correct_batch
-
-            for j in range(len(init_pred)):
-                loss = F.cross_entropy(output.logits, target)
+    
+            for j in range(data.size(0)):
+                image = data[j:j+1].clone().detach().to(self.device)  # [1, C, H, W]
+                label = target[j:j+1].to(self.device)
+    
+                image.requires_grad = True
+                output = self.model(image)
+                init_pred = output.logits.max(1, keepdim=True)[1]
+    
+                if init_pred.item() != label.item():
+                    continue  # Skip if initially misclassified
+    
+                loss = F.cross_entropy(output.logits, label)
                 self.model.zero_grad()
                 loss.backward()
-                data_grad = data.grad.data
-
-                data_denorm = self._denormalize(data)
-                perturbed_data = self._fgsm_attack(data_denorm, epsilon, data_grad)
-                perturbed_data_norm = self.normalize(perturbed_data)
-
-                output = self.model(perturbed_data_norm)
-                final_pred = output.logits.max(1, keepdim=True)[1]  # Access logits here
-
-                if final_pred[j].item() == target[j].item():
+    
+                data_grad = image.grad.data
+                image_denorm = self._denormalize(image)
+                perturbed_image = self._fgsm_attack(image_denorm, epsilon, data_grad)
+                perturbed_image_norm = self.normalize(perturbed_image)
+    
+                # Optional debug print
+                # print("Perturbation mean abs diff:", (perturbed_image - image_denorm).abs().mean().item())
+    
+                output = self.model(perturbed_image_norm)
+                final_pred = output.logits.max(1, keepdim=True)[1]
+    
+                if final_pred.item() == label.item():
+                    correct += 1
                     if epsilon == 0 and len(adv_examples) < 5:
-                        adv_examples.append((init_pred[j].item(), final_pred[j].item(),
-                                             perturbed_data.squeeze().detach().cpu().numpy()))
+                        adv_examples.append((init_pred.item(), final_pred.item(),
+                                             perturbed_image.squeeze().detach().cpu().numpy()))
                 else:
                     if len(adv_examples) < 5:
-                        adv_examples.append((init_pred[j].item(), final_pred[j].item(),
-                                             perturbed_data.squeeze().detach().cpu().numpy()))
-
+                        adv_examples.append((init_pred.item(), final_pred.item(),
+                                             perturbed_image.squeeze().detach().cpu().numpy()))
+    
             if i % 200 == 199:
                 print(f'[{i + 1:5d}]')
-
-        final_acc = correct / float(len(test_loader.dataset))  # Use dataset size for overall accuracy
+    
+        final_acc = correct / float(len(test_loader.dataset))
         print(f"Epsilon: {epsilon}\tTest Accuracy = {correct} / {len(test_loader.dataset)} = {final_acc}")
         return final_acc, adv_examples

@@ -30,7 +30,7 @@ def main():
 
     # Run FGSM Attack
     attacker = FGSMAttacker(trainer.model, device)
-    epsilon = 0.1
+    epsilon = 0.9
     acc, adv_examples = attacker.attack(test_loader, epsilon)
 
     print(f"FGSM Attack completed. Accuracy after attack: {acc*100:.2f}%")
