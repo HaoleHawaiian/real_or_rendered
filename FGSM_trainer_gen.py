@@ -13,10 +13,9 @@ def fgsm_trainer(model, inputs, labels, device, epsilon=0.05):
     delta = torch.zeros_like(data_denorm, requires_grad=True)
     loss_perturbed = torch.nn.CrossEntropyLoss()(model(data_denorm + delta), labels)
     loss_perturbed.backward()
-    perturbed_data = epsilon * delta.grad.detach().sign()
-    perturbed_data =  torch.clamp(perturbed_data, 0, 1)
-    perturbed_data_normalized = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(perturbed_data)
-    return perturbed_data_normalized
+    fgsm_result = epsilon * delta.grad.detach().sign()
+    fgsm_result_normalized = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(fgsm_result)
+    return fgsm_result_normalized
     
     
     
