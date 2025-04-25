@@ -152,12 +152,19 @@ class FGSMAttacker:
     
                 image.requires_grad = True
                 output = self.model(image)
-                init_pred = output.logits.max(1, keepdim=True)[1]
+                try:
+                    init_pred = output.logits.max(1, keepdim=True)[1]
+                except:
+                    init_pred = output.max(1, keepdim=True)[1]
+
     
                 if init_pred.item() != label.item():
                     continue  
-    
-                loss = F.cross_entropy(output.logits, label)
+                try:
+                    loss = F.cross_entropy(output.logits, label)
+                except:
+                    loss = F.cross_entropy(output, target)
+                
                 self.model.zero_grad()
                 loss.backward()
     
@@ -168,7 +175,10 @@ class FGSMAttacker:
     
     
                 output = self.model(perturbed_image_norm)
-                final_pred = output.logits.max(1, keepdim=True)[1]
+                try:
+                    final_pred = output.logits.max(1, keepdim=True)[1]
+                except:
+                    final_pred = output.max(1, keepdim=True)[1]
     
                 if final_pred.item() == label.item():
                     correct += 1
