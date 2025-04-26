@@ -25,6 +25,7 @@ Among specific models used to distinguish real or fake images, we can point to t
 - data_loader.py
 - data_attack.py
 - data_augmentation.py
+- main.ipynb
 
 
 ## 6. Group Members
