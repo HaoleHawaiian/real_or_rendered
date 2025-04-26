@@ -28,7 +28,7 @@ class CustomImageDataset(Dataset):
         label = int(self.img_labels.loc[idx, 'label'])
         if self.transform:
             image = self.transform(image)
-        return image, label, img_path
+        return image, label #, img_path
 
 ### Deprecated
 class UnlabeledImageDataset(Dataset):

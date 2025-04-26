@@ -28,7 +28,7 @@ class ProjectVisionTransformer:
         self.criterion = nn.CrossEntropyLoss()
 
         if optimizer == 'SGD':
-            self.optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=self.momentum)
+            self.optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=self.momentum, weight_decay=self.weight_decay)
         elif optimizer == 'AdamW':
             self.optimizer = optim.AdamW(self.model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay)
 
@@ -50,13 +50,13 @@ class ProjectVisionTransformer:
         if test_loader is not None:
             self.test_loader = test_loader
 
-    def train(self):
+    def train(self, description=''):
         self.model.train()
 
         for epoch in range(self.epochs):
             running_loss = 0.0
             progress_bar = tqdm(self.train_loader, desc=f'Epoch {epoch + 1}/{self.epochs}', leave=False, unit='batch')
-            for i, (images, labels, path) in enumerate(progress_bar):
+            for i, (images, labels) in enumerate(progress_bar):
                 images = images.to(self.device)
                 labels = labels.to(self.device)
 
@@ -85,13 +85,20 @@ class ProjectVisionTransformer:
             os.makedirs('saved_models')
             print(f"Created directory: {'saved_models'}")
 
-        full_save_path = os.path.join('saved_models', f'visiontransformer.pth')
+        if description == '':
+            full_save_path = os.path.join('saved_models', f'visiontransformer.pth')
+        else:
+            full_save_path = os.path.join('saved_models', f'visiontransformer_{description}.pth')
 
         torch.save(self.model.state_dict(), full_save_path)
         print(f'Model state dictionary saved to: {full_save_path}')
 
-    def model_load(self, file='saved_models/visiontransformer.pth'):
-        self.model.load_state_dict(torch.load(file))
+    def model_load(self, file='saved_models/visiontransformer.pth', description=''):
+        if description == '':
+            self.model.load_state_dict(torch.load(file))
+        else:
+            description_file = f'saved_models/visiontransformer_{description}.pth'
+            self.model.load_state_dict(torch.load(description_file))
 
     def evaluate(self):
         self.model.eval()
@@ -102,7 +109,7 @@ class ProjectVisionTransformer:
         incorrect_preds = []
 
         with torch.no_grad():
-            for images, labels, paths in self.test_loader:
+            for images, labels in self.test_loader:
                 images = images.to(self.device)
                 labels = labels.to(self.device)
                 outputs = self.model(images).logits
@@ -120,7 +127,7 @@ class ProjectVisionTransformer:
 
                     if predicted[i] != labels[i]:
                         incorrect_preds.append({
-                            'path': paths[i],
+                            #'path': paths[i],
                             'true_label': labels[i].item(),
                             'predicted_label': predicted[i].item(),
                             'confidence': probs[i][predicted[i]].item()
