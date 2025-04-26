@@ -40,7 +40,7 @@ class ProjectEfficientNet:
         if test_loader is not None:
             self.test_loader = test_loader
 
-    def train(self):
+    def train(self, description=''):
         self.model.train()
 
         for epoch in range(self.epochs):
@@ -66,13 +66,17 @@ class ProjectEfficientNet:
             os.makedirs('saved_models')
             print(f"Created directory: {'saved_models'}")
 
-        full_save_path = os.path.join('saved_models', f'efficientnet_b0_model.pth')
+        full_save_path = os.path.join('saved_models', f'efficientnet_b0_model_{description}.pth')
 
         torch.save(self.model.state_dict(), full_save_path)
         print(f'Model state dictionary saved to: {full_save_path}')
 
-    def model_load(self, file='saved_models/efficientnet_b0_model.pth'):
-        self.model.load_state_dict(torch.load(file))
+    def model_load(self, file='saved_models/efficientnet_b0_model.pth', description=''):
+        if description == '':
+            self.model.load_state_dict(torch.load(file))
+        else:
+            description_file = f'saved_models/efficientnet_b0_model_{description}.pth'
+            self.model.load_state_dict(torch.load(description_file))
 
     def evaluate(self):
         self.model.eval()

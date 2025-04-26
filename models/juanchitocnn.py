@@ -96,13 +96,17 @@ class ProjectJuanchitoCNN:
             os.makedirs('saved_models')
             print(f"Created directory: {'saved_models'}")
 
-        full_save_path = os.path.join('saved_models', f'JuanchitoCNN.pth')
+        full_save_path = os.path.join('saved_models', f'JuanchitoCNN_{description}.pth')
 
         torch.save(self.model.state_dict(), full_save_path)
         print(f'Model state dictionary saved to: {full_save_path}')
 
-    def model_load(self, file='saved_models/JuanchitoCNN.pth'):
-        self.model.load_state_dict(torch.load(file))
+    def model_load(self, file='saved_models/JuanchitoCNN.pth', description=''):
+        if description == '':
+            self.model.load_state_dict(torch.load(file))
+        else:
+            description_file = f'saved_models/JuanchitoCNN_{description}.pth'
+            self.model.load_state_dict(torch.load(description_file))
 
     def evaluate(self):
         self.model.eval()
