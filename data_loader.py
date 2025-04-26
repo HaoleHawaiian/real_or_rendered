@@ -160,17 +160,17 @@ if __name__ == "__main__":
 
     train_loader, test_loader, attack_loader, train_dataset, test_dataset, attack_dataset = get_train_test_loaders(csv_path, image_folder, attack_style='SaltAndPepper')
 
-    for images, labels, _ in train_loader:
+    for images, labels in train_loader:
         print("Train batch shape:", images.shape)
         print("Train labels shape:", labels.shape)
         break
 
-    for images, labels, _ in test_loader:
+    for images, labels in test_loader:
         print("Test batch shape:", images.shape)
         print("Test labels shape:", labels.shape)
         break
     
-    for images, labels, _ in attack_loader:
+    for images, labels in attack_loader:
         print("Attack test batch shape:", images.shape)
         print("Attack test labels shape:", labels.shape)
         break

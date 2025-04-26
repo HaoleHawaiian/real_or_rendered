@@ -142,7 +142,7 @@ class ProjectVisionTransformer:
         total_loss = 0.0
     
         with torch.no_grad():
-            for images, labels, paths in self.test_loader:
+            for images, labels in self.test_loader:
                 images = images.to(self.device)
                 labels = labels.to(self.device)
                 outputs = self.model(pixel_values = images).logits
