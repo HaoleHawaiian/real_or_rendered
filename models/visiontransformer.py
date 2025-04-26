@@ -11,19 +11,25 @@ from data_loader import get_train_test_loaders
 
 class ProjectVisionTransformer:
 
-    def __init__(self, epochs=1, learning_rate=2e-5, batch_size=16, weight_decay=1e-2):
+    def __init__(self, epochs=1, learning_rate=2e-5, batch_size=16, optimizer='SGD', momentum=0.9, weight_decay=0.01):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.epochs = epochs
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.num_classes = 2
+        self.momentum = momentum
         self.weight_decay = weight_decay
+
 
         self.model = ViTForImageClassification.from_pretrained('facebook/deit-tiny-distilled-patch16-224', num_labels=self.num_classes).to(self.device)
         self.processor = ViTImageProcessor.from_pretrained('facebook/deit-tiny-distilled-patch16-224')
 
         self.criterion = nn.CrossEntropyLoss()
-        self.optimizer = optim.AdamW(self.model.parameters(), lr=self.learning_rate)
+
+        if optimizer == 'SGD':
+            self.optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=self.momentum)
+        elif optimizer == 'AdamW':
+            self.optimizer = optim.AdamW(self.model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay)
 
         self.train_loader = None
         self.test_loader = None
@@ -63,6 +69,7 @@ class ProjectVisionTransformer:
                 avg_loss = running_loss / (i + 1)
                 progress_bar.set_postfix({'loss': f'{avg_loss:.4f}'})
                 progress_bar.refresh()
+
 
         # Saving model
         if not os.path.exists('saved_models'):

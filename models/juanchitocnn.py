@@ -38,17 +38,23 @@ class ClassifierModel(nn.Module):
 
 class ProjectJuanchitoCNN:
 
-    def __init__(self, epochs=5, learning_rate=0.001, batch_size=16):
+    def __init__(self, epochs=5, learning_rate=0.001, batch_size=16, optimizer='SGD', momentum=0.9, weight_decay=0.01):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.epochs = epochs
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.num_classes = 2
         self.model = ClassifierModel().to(self.device)
-        self.momentum = 0.9
+        self.momentum = momentum
+        self.weight_decay = weight_decay
 
         self.criterion = nn.CrossEntropyLoss()
-        self.optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=self.momentum)
+
+        if optimizer == 'SGD':
+            self.optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=self.momentum)
+        elif optimizer == 'AdamW':
+            self.optimizer = optim.AdamW(self.model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay)
+
 
         self.train_loader = None
         self.test_loader = None
