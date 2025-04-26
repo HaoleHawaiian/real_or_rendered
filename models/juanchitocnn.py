@@ -51,7 +51,7 @@ class ProjectJuanchitoCNN:
         self.criterion = nn.CrossEntropyLoss()
 
         if optimizer == 'SGD':
-            self.optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=self.momentum)
+            self.optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=self.momentum, weight_decay=self.weight_decay)
         elif optimizer == 'AdamW':
             self.optimizer = optim.AdamW(self.model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay)
 
