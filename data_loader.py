@@ -3,7 +3,7 @@ import pandas as pd
 import random
 from PIL import Image
 import torch
-from torch.utils.data import Dataset, DataLoader, random_split, Subset
+from torch.utils.data import Dataset, DataLoader, Subset
 from torchvision import transforms
 from data_augmentation import get_train_transform, get_test_transform
 from data_attack import get_attack_transform
@@ -30,6 +30,7 @@ class CustomImageDataset(Dataset):
             image = self.transform(image)
         return image, label, img_path
 
+### Deprecated
 class UnlabeledImageDataset(Dataset):
     def __init__(self, image_folder, transform=None):
         self.image_folder = image_folder
@@ -47,13 +48,61 @@ class UnlabeledImageDataset(Dataset):
             image = self.transform(image)
         return image, self.image_paths[idx]
 
+### Deprecated
 def get_dataloader(csv_path='data/train.csv', image_folder='data/train_data', image_size=(224, 224), batch_size=32, shuffle=True):
     transform = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
     dataset = CustomImageDataset(csv_path, image_folder, transform=transform)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=8)
     return dataloader, dataset
 
+def data_train_test_indices(csv_path='data/train.csv', image_folder='data/train_data', split_ratio=0.8):
+    dataset = CustomImageDataset(csv_path, image_folder, transform=None)
 
+    # Split the data into train and test
+    total_size = len(dataset)
+    indices = list(range(total_size))
+    random.seed(42)
+    random.shuffle(indices)                  # randomize the split
+    train_size = int(split_ratio * len(dataset))
+    train_indices, test_indices = indices[:train_size], indices[train_size:]
+
+    return train_indices, test_indices
+
+def indices_to_dataloaders(csv_path, image_folder, train_transform, test_transform, train_indices, test_indices, train_batch_size, test_batch_size):
+    # Create subsets with transform
+    train_full_dataset = CustomImageDataset(csv_path, image_folder, transform=train_transform)
+    test_full_dataset = CustomImageDataset(csv_path, image_folder, transform=test_transform)
+
+    # Wrap in Subset to use the indices
+    train_dataset = Subset(train_full_dataset, train_indices)
+    test_dataset = Subset(test_full_dataset, test_indices)
+
+    # Create dataloaders
+    train_loader = DataLoader(train_dataset, batch_size=train_batch_size, shuffle=True, num_workers=8)
+    test_loader = DataLoader(test_dataset, batch_size=test_batch_size, shuffle=False, num_workers=8)
+
+    return  train_loader, test_loader
+
+def data_to_train_test_dataloaders(csv_path='data/train.csv', image_folder='data/train_data', image_size=(224, 224), split_ratio=0.8, train_batch_size=32, test_batch_size=32):
+    transform = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+    train_indices, test_indices = data_train_test_indices(csv_path, image_folder, split_ratio)
+    train_loader, test_loader = indices_to_dataloaders(csv_path, image_folder, train_transform=transform, test_transform=transform, train_indices=train_indices, test_indices=test_indices, train_batch_size=train_batch_size, test_batch_size=test_batch_size)
+    return train_loader, test_loader
+
+def data_to_aug_dataloaders(csv_path='data/train.csv', image_folder='data/train_data', image_size=(224, 224), split_ratio=0.8, train_batch_size=32, test_batch_size=32):
+    train_transform = get_train_transform(image_size)
+    test_transform = get_test_transform(image_size)
+    train_indices, test_indices = data_train_test_indices(csv_path, image_folder, split_ratio)
+    train_loader, test_loader = indices_to_dataloaders(csv_path, image_folder, train_transform=train_transform, test_transform=test_transform, train_indices=train_indices, test_indices=test_indices, train_batch_size=train_batch_size, test_batch_size=test_batch_size)
+    return train_loader, test_loader
+
+def data_to_attack_dataloaders(csv_path='data/train.csv', image_folder='data/train_data', image_size=(224, 224), split_ratio=0.8, train_batch_size=32, test_batch_size=32, attack_style='SaltAndPepper'):
+    transform = get_attack_transform(attack_style=attack_style)
+    train_indices, test_indices = data_train_test_indices(csv_path, image_folder, split_ratio)
+    train_loader, test_loader = indices_to_dataloaders(csv_path, image_folder, train_transform=transform, test_transform=transform, train_indices=train_indices, test_indices=test_indices, train_batch_size=train_batch_size, test_batch_size=test_batch_size)
+    return train_loader, test_loader
+
+### Deprecated
 def get_train_test_loaders(csv_path='data/train.csv', image_folder='data/train_data', image_size=(224, 224), train_batch_size=32, test_batch_size=32,attack_batch_size=32,split_ratio=0.8, augmentation=True, attack_style='SaltAndPepper'):
     #attack style options: SaltAndPepper, Posterize, GaussNoise, RandomShadow
     transform = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
@@ -98,6 +147,7 @@ def get_train_test_loaders(csv_path='data/train.csv', image_folder='data/train_d
 
     return train_loader, test_loader, attack_loader, train_dataset, test_dataset, attack_dataset
 
+### Deprecated
 def get_unlabeled_loader(image_folder='data/test_data_v2', image_size=(224, 224), batch_size=32):
     transform = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
     dataset = UnlabeledImageDataset(image_folder, transform=transform)

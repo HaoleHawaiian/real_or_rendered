@@ -37,14 +37,11 @@ class ProjectVisionTransformer:
         self.val_accuracies = []
         self.best_val_acc = 0.0
 
-    def data_load(self, split_ratio=0.8, image_size=(224,224), batch_size=32, augmentation=False):
-        train_loader, test_loader, attack_loader, train_set, test_set, attack_set = get_train_test_loaders(split_ratio=split_ratio, image_size=image_size, train_batch_size=batch_size, test_batch_size=batch_size, attack_batch_size=batch_size, augmentation=augmentation)
-        self.train_loader = train_loader
-        self.test_loader = test_loader
-        self.attack_loader = attack_loader
-        self.train_set = train_set
-        self.test_set = test_set
-        self.attack_set = attack_set
+    def data_load(self, train_loader=None, test_loader=None):
+        if train_loader is not None:
+            self.train_loader = train_loader
+        if test_loader is not None:
+            self.test_loader = test_loader
 
     def train(self):
         self.model.train()
