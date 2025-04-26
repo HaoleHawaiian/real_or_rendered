@@ -71,14 +71,14 @@ class ProjectVisionTransformer:
                 progress_bar.set_postfix({'loss': f'{avg_loss:.4f}'})
                 progress_bar.refresh()
             
-            # Viz prep - training loss
-            epoch_train_loss = running_loss / len(self.train_loader)
-            self.train_losses.append(epoch_train_loss)
-            
-            # Viz prep - validation loss
-            if self.test_loader is not None:
-                val_loss = self.evaluate_loss()
-                self.val_losses.append(val_loss)
+        # Viz prep - training loss
+        epoch_train_loss = running_loss / len(self.train_loader)
+        self.train_losses.append(epoch_train_loss)
+        
+        # Viz prep - validation loss
+        if self.test_loader is not None:
+            val_loss = self.evaluate_loss()
+            self.val_losses.append(val_loss)
 
         # Saving model
         if not os.path.exists('saved_models'):

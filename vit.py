@@ -22,6 +22,8 @@ from sklearn.metrics import classification_report
 # https://medium.com/@dtuk81/confusion-matrix-visualization-fc31e3f30fea
 from tqdm import tqdm
 # https://tqdm.github.io/
+import matplotlib.pyplot as plt
+
 
 # data read class
 # from data_reader import RealOrRenderedDataset
@@ -90,7 +92,7 @@ class ViTTrainer:
                 torch.save(self.model.state_dict(), self.save_path)
                 print(f"New best model saved with accuracy: {val_acc * 100:.2f}%")
 
-        # self.plot_curves()
+        self.plot_losses()
 
     # For evaluation at the end of the training -- NOT NEEDED FOR CALCULATIONS
     def validate(self):
@@ -142,12 +144,31 @@ class ViTTrainer:
 
         with open("classification_report.txt", "w") as f:
             f.write(report)
+    
+    def plot_losses(self):
+        # Plot Training Loss
+        plt.figure(figsize=(8,6))
+        plt.plot(self.train_losses, marker='o', color='blue')
+        plt.title('Training Loss Over Epochs')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.grid(True)
+        plt.show()
+    
+        # Plot Validation Loss
+        plt.figure(figsize=(8,6))
+        plt.plot(self.val_losses, marker='x', color='orange')
+        plt.title('Validation Loss Over Epochs')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.grid(True)
+        plt.show()
 
 if __name__ == "__main__":
     train_loader, test_loader, _, _, _, _ = get_train_test_loaders(
         csv_path='data/train.csv',
         image_folder='data/train_data',
-        batch_size=128,
+        #batch_size=128,
         split_ratio=0.8,
         augmentation=True
     )
@@ -156,7 +177,7 @@ if __name__ == "__main__":
         train_loader=train_loader,
         test_loader=test_loader,
         save_path='best_vit_model.pth',
-        num_epochs=40,
+        num_epochs=3,
         lr=2e-4,
         weight_decay=0.01
     )
