@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from transformers import ViTForImageClassification, ViTImageProcessor, logging
 logging.set_verbosity_error()
 from data_loader import get_train_test_loaders
+import matplotlib.pyplot as plt
 
 
 class ProjectVisionTransformer:
@@ -69,7 +70,15 @@ class ProjectVisionTransformer:
                 avg_loss = running_loss / (i + 1)
                 progress_bar.set_postfix({'loss': f'{avg_loss:.4f}'})
                 progress_bar.refresh()
-
+            
+            # Viz prep - training loss
+            epoch_train_loss = running_loss / len(self.train_loader)
+            self.train_losses.append(epoch_train_loss)
+            
+            # Viz prep - validation loss
+            if self.test_loader is not None:
+                val_loss = self.evaluate_loss()
+                self.val_losses.append(val_loss)
 
         # Saving model
         if not os.path.exists('saved_models'):
@@ -120,3 +129,38 @@ class ProjectVisionTransformer:
         accuracy = 100 * correct / total
         print(f'Test Accuracy: {accuracy:.2f}%')
         return correct, total, incorrect_preds
+    
+    def evaluate_loss(self):
+        self.model.eval()
+        total_loss = 0.0
+    
+        with torch.no_grad():
+            for images, labels, paths in self.test_loader:
+                images = images.to(self.device)
+                labels = labels.to(self.device)
+                outputs = self.model(pixel_values = images).logits
+                loss = self.criterion(outputs, labels)
+                total_loss += loss.item()
+    
+        avg_val_loss = total_loss / len(self.test_loader)
+        self.model.train()
+        return avg_val_loss
+
+    def plot_losses(self):
+        # Training
+        plt.figure(figsize = (8,6))
+        plt.plot(self.train_losses, marker = 'o')
+        plt.title('Training Loss Over Epochs')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.grid(True)
+        plt.show()
+        
+        # Validation
+        plt.figure(figsize = (8,6))
+        plt.plot(self.val_losses, marker='x', color='orange')
+        plt.title('Validation Loss Over Epochs')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.grid(True)
+        plt.show()
