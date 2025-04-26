@@ -5,7 +5,8 @@ from transformers import ViTForImageClassification
 Get the FLOPs of a model for reporting
 """
 
-model = ViTForImageClassification.from_pretrained('facebook/deit-tiny-distilled-patch16-224', num_labels=self.num_classes).to(self.device)
+# model = ViTForImageClassification.from_pretrained('facebook/deit-tiny-distilled-patch16-224', num_labels=self.num_classes).to(self.device)
+model = ViTForImageClassification.from_pretrained('facebook/deit-tiny-distilled-patch16-224', num_labels=2)
 input_shape = (3, 224, 224)
 
 macs, params = get_model_complexity_info(
