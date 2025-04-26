@@ -73,7 +73,7 @@ class ProjectJuanchitoCNN:
         for epoch in range(self.epochs):
             running_loss = 0.0
             progress_bar = tqdm(self.train_loader, desc=f'Epoch {epoch + 1}/{self.epochs}', leave=False, unit='batch')
-            for i, (images, labels, path) in enumerate(progress_bar):
+            for i, (images, labels) in enumerate(progress_bar):
                 images = images.to(self.device)
                 labels = labels.to(self.device)
 
@@ -120,7 +120,7 @@ class ProjectJuanchitoCNN:
         incorrect_preds = []
 
         with torch.no_grad():
-            for images, labels, paths in self.test_loader:
+            for images, labels in self.test_loader:
                 images = images.to(self.device)
                 labels = labels.to(self.device)
                 outputs = self.model(images)
@@ -138,7 +138,7 @@ class ProjectJuanchitoCNN:
 
                     if predicted[i] != labels[i]:
                         incorrect_preds.append({
-                            'path': paths[i],
+                            #'path': paths[i],
                             'true_label': labels[i].item(),
                             'predicted_label': predicted[i].item(),
                             'confidence': probs[i][predicted[i]].item()
