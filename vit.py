@@ -147,7 +147,7 @@ class ViTTrainer:
     
     def plot_losses(self):
         # Plot Training Loss
-        plt.figure(figsize=(8,6))
+        plt.figure(figsize = (8,6))
         plt.plot(self.train_losses, marker='o', color='blue')
         plt.title('Training Loss Over Epochs')
         plt.xlabel('Epoch')
@@ -156,7 +156,7 @@ class ViTTrainer:
         plt.show()
     
         # Plot Validation Loss
-        plt.figure(figsize=(8,6))
+        plt.figure(figsize = (8,6))
         plt.plot(self.val_losses, marker='x', color='orange')
         plt.title('Validation Loss Over Epochs')
         plt.xlabel('Epoch')
@@ -166,20 +166,20 @@ class ViTTrainer:
 
 if __name__ == "__main__":
     train_loader, test_loader, _, _, _, _ = get_train_test_loaders(
-        csv_path='data/train.csv',
-        image_folder='data/train_data',
-        #batch_size=128,
-        split_ratio=0.8,
-        augmentation=True
+        csv_path = 'data/train.csv',
+        image_folder = 'data/train_data',
+        #batch_size = 128,
+        split_ratio = 0.8,
+        augmentation = True
     )
 
     trainer = ViTTrainer(
-        train_loader=train_loader,
-        test_loader=test_loader,
-        save_path='best_vit_model.pth',
-        num_epochs=3,
-        lr=2e-4,
-        weight_decay=0.01
+        train_loader = train_loader,
+        test_loader = test_loader,
+        save_path = 'best_vit_model.pth',
+        num_epochs = 2,
+        lr = 2e-4,
+        weight_decay = 0.01
     )
 
     trainer.train()
