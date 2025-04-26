@@ -69,7 +69,7 @@ class ProjectJuanchitoCNN:
         if test_loader is not None:
             self.test_loader = test_loader
 
-    def train(self):
+    def train(self, description=''):
         for epoch in range(self.epochs):
             running_loss = 0.0
             progress_bar = tqdm(self.train_loader, desc=f'Epoch {epoch + 1}/{self.epochs}', leave=False, unit='batch')
@@ -96,7 +96,10 @@ class ProjectJuanchitoCNN:
             os.makedirs('saved_models')
             print(f"Created directory: {'saved_models'}")
 
-        full_save_path = os.path.join('saved_models', f'JuanchitoCNN_{description}.pth')
+        if description == '':
+            full_save_path = os.path.join('saved_models', f'JuanchitoCNN.pth')
+        else:
+            full_save_path = os.path.join('saved_models', f'JuanchitoCNN_{description}.pth')
 
         torch.save(self.model.state_dict(), full_save_path)
         print(f'Model state dictionary saved to: {full_save_path}')

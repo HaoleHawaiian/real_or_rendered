@@ -85,7 +85,10 @@ class ProjectVisionTransformer:
             os.makedirs('saved_models')
             print(f"Created directory: {'saved_models'}")
 
-        full_save_path = os.path.join('saved_models', f'visiontransformer_{description}.pth')
+        if description == '':
+            full_save_path = os.path.join('saved_models', f'visiontransformer.pth')
+        else:
+            full_save_path = os.path.join('saved_models', f'visiontransformer_{description}.pth')
 
         torch.save(self.model.state_dict(), full_save_path)
         print(f'Model state dictionary saved to: {full_save_path}')

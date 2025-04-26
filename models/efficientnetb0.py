@@ -66,7 +66,10 @@ class ProjectEfficientNet:
             os.makedirs('saved_models')
             print(f"Created directory: {'saved_models'}")
 
-        full_save_path = os.path.join('saved_models', f'efficientnet_b0_model_{description}.pth')
+        if description == '':
+            full_save_path = os.path.join('saved_models', f'efficientnet_b0_model.pth')
+        else:
+            full_save_path = os.path.join('saved_models', f'efficientnet_b0_model_{description}.pth')
 
         torch.save(self.model.state_dict(), full_save_path)
         print(f'Model state dictionary saved to: {full_save_path}')
