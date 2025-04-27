@@ -2,7 +2,10 @@ import torch
 import models.juanchitocnn
 import data_loader
 """
-Get the Top-1 accuracy of a model for reporting
+Get the Top-1 accuracy of a model for reporting.
+Use ImageNet-1k validation set.
+You must download validation set separately https://image-net.org/download.php
+Add the validation set to the gitignore so it's not uploaded to github.
 """
 
 def compute_accuracy(model, train_loader, device='cuda'):
@@ -42,15 +45,5 @@ train_test_split_ratio = 0.8
 if select_model == 'JuanchitoCNN':
     project_model = models.juanchitocnn.ProjectJuanchitoCNN(epochs=epochs, learning_rate=learning_rate, batch_size=batch_size, optimizer=optimizer, momentum=momentum, weight_decay=weight_decay)
 
-regular_train_loader, regular_test_loader = data_loader.data_to_train_test_dataloaders(csv_path='data/train.csv', 
-                                                                                       image_folder='data/train_data', 
-                                                                                       image_size=(224, 224), 
-                                                                                       split_ratio=train_test_split_ratio, 
-                                                                                       train_batch_size=batch_size, 
-                                                                                       test_batch_size=batch_size)
-
-project_model.data_load(regular_train_loader, regular_test_loader)
-# regular_correct, total, regular_incorrect_preds = project_model.evaluate()
-
-top1_accuracy = compute_accuracy(project_model, regular_train_loader)
+top1_accuracy = compute_accuracy()
 print(f"The Top-1 accuracy for {select_model} is {top1_accuracy}.")
