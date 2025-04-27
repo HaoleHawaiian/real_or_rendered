@@ -143,7 +143,7 @@ class FGSMAttacker:
         correct = 0
         adv_examples = []
     
-        for i, (data, target, _) in enumerate(test_loader):
+        for i, (data, target) in enumerate(test_loader):
             data, target = data.to(self.device), target.to(self.device)
     
             for j in range(data.size(0)):
@@ -190,7 +190,7 @@ class FGSMAttacker:
                         adv_examples.append((init_pred.item(), final_pred.item(),
                                              perturbed_image.squeeze().detach().cpu().numpy()))
     
-            if i % 200 == 199:
+            if i % 2000 == 1999:
                 print(f'[{i + 1:5d}]')
     
         final_acc = correct / float(len(test_loader.dataset))
