@@ -39,7 +39,7 @@ class ProjectEfficientNet:
         if test_loader is not None:
             self.test_loader = test_loader
 
-    def train(self, description='', track_loss=False):
+    def train(self, description='', track_loss=False, save=True):
         self.model.train()
         self.train_losses = []
         self.val_losses = []
@@ -74,19 +74,20 @@ class ProjectEfficientNet:
                     self.val_losses.append(val_loss)
 
         # Saving model
-        if not os.path.exists('saved_models'):
-            os.makedirs('saved_models')
-            print(f"Created directory: {'saved_models'}")
+        if save == True:
+            if not os.path.exists('saved_models'):
+                os.makedirs('saved_models')
+                print(f"Created directory: {'saved_models'}")
 
-        if description == '':
-            full_save_path = os.path.join('saved_models', f'efficientnet_b0_model.pth')
-        else:
-            full_save_path = os.path.join('saved_models', f'efficientnet_b0_model_{description}.pth')
+            if description == '':
+                full_save_path = os.path.join('saved_models', f'efficientnet_b0_model.pth')
+            else:
+                full_save_path = os.path.join('saved_models', f'efficientnet_b0_model_{description}.pth')
 
-        torch.save(self.model.state_dict(), full_save_path)
-        print(f'Model state dictionary saved to: {full_save_path}')
+            torch.save(self.model.state_dict(), full_save_path)
+            print(f'Model state dictionary saved to: {full_save_path}')
         
-    def train_adversarial(self, description='', track_loss=False):
+    def train_adversarial(self, description='', track_loss=False, save=True):
         self.model.train()
         self.train_losses = []
         self.val_losses = []
@@ -125,17 +126,18 @@ class ProjectEfficientNet:
                     self.val_losses.append(val_loss)
 
         # Saving model
-        if not os.path.exists('saved_models'):
-            os.makedirs('saved_models')
-            print(f"Created directory: {'saved_models'}")
+        if save == True:
+            if not os.path.exists('saved_models'):
+                os.makedirs('saved_models')
+                print(f"Created directory: {'saved_models'}")
 
-        if description == '':
-            full_save_path = os.path.join('saved_models', f'efficientnet_b0_model.pth')
-        else:
-            full_save_path = os.path.join('saved_models', f'efficientnet_b0_model_{description}.pth')
+            if description == '':
+                full_save_path = os.path.join('saved_models', f'efficientnet_b0_model.pth')
+            else:
+                full_save_path = os.path.join('saved_models', f'efficientnet_b0_model_{description}.pth')
 
-        torch.save(self.model.state_dict(), full_save_path)
-        print(f'Model state dictionary saved to: {full_save_path}')
+            torch.save(self.model.state_dict(), full_save_path)
+            print(f'Model state dictionary saved to: {full_save_path}')
 
     def model_load(self, file='saved_models/efficientnet_b0_model.pth', description=''):
         if description == '':
