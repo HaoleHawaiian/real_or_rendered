@@ -45,8 +45,10 @@ class ProjectVisionTransformer:
         if test_loader is not None:
             self.test_loader = test_loader
 
-    def train(self, description=''):
+    def train(self, description='', track_loss=False):
         self.model.train()
+        self.train_losses = []
+        self.val_losses = []
 
         for epoch in range(self.epochs):
             running_loss = 0.0
@@ -65,15 +67,16 @@ class ProjectVisionTransformer:
                 avg_loss = running_loss / (i + 1)
                 progress_bar.set_postfix({'loss': f'{avg_loss:.4f}'})
                 progress_bar.refresh()
-            
-            # Viz prep - training loss
-            epoch_train_loss = running_loss / len(self.train_loader)
-            self.train_losses.append(epoch_train_loss)
 
-            # Viz prep - validation loss
-            if self.test_loader is not None:
-                val_loss = self.evaluate_loss()
-                self.val_losses.append(val_loss)
+            if track_loss == True:
+                # Viz prep - training loss
+                epoch_train_loss = running_loss / len(self.train_loader)
+                self.train_losses.append(epoch_train_loss)
+
+                # Viz prep - validation loss
+                if self.test_loader is not None:
+                    val_loss = self.evaluate_loss()
+                    self.val_losses.append(val_loss)
 
         # Saving model
         if not os.path.exists('saved_models'):
@@ -88,7 +91,7 @@ class ProjectVisionTransformer:
         torch.save(self.model.state_dict(), full_save_path)
         print(f'Model state dictionary saved to: {full_save_path}')
         
-    def train_adversarial(self, description=''):
+    def train_adversarial(self, description='', track_loss=False):
         self.model.train()
         self.train_losses = []
         self.val_losses = []
@@ -114,14 +117,15 @@ class ProjectVisionTransformer:
                 progress_bar.set_postfix({'loss': f'{avg_loss:.4f}'})
                 progress_bar.refresh()
             
-            # Viz prep - training loss
-            epoch_train_loss = running_loss / len(self.train_loader)
-            self.train_losses.append(epoch_train_loss)
+            if track_loss == True:
+                # Viz prep - training loss
+                epoch_train_loss = running_loss / len(self.train_loader)
+                self.train_losses.append(epoch_train_loss)
 
-            # Viz prep - validation loss
-            if self.test_loader is not None:
-                val_loss = self.evaluate_loss()
-                self.val_losses.append(val_loss)
+                # Viz prep - validation loss
+                if self.test_loader is not None:
+                    val_loss = self.evaluate_loss()
+                    self.val_losses.append(val_loss)
 
         # Saving model
         if not os.path.exists('saved_models'):
