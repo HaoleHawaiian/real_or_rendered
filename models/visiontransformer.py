@@ -6,7 +6,6 @@ import torch.optim as optim
 import torch.nn.functional as F
 from transformers import ViTForImageClassification, ViTImageProcessor, logging
 logging.set_verbosity_error()
-from data_loader import get_train_test_loaders
 import matplotlib.pyplot as plt
 from FGSM_trainer_gen import fgsm_trainer_iter
 
@@ -75,6 +74,7 @@ class ProjectVisionTransformer:
 
                 # Viz prep - validation loss
                 if self.test_loader is not None:
+                    print(f'Evaluating loss at Epoch {epoch+1}')
                     val_loss = self.evaluate_loss()
                     self.val_losses.append(val_loss)
 
@@ -124,6 +124,7 @@ class ProjectVisionTransformer:
 
                 # Viz prep - validation loss
                 if self.test_loader is not None:
+                    print(f'Evaluating loss at Epoch {epoch+1}')
                     val_loss = self.evaluate_loss()
                     self.val_losses.append(val_loss)
 
@@ -181,7 +182,7 @@ class ProjectVisionTransformer:
                         })
 
         accuracy = 100 * correct / total
-        print(f'Test Accuracy: {accuracy:.2f}%')
+        #print(f'Test Accuracy: {accuracy:.2f}%')
         return correct, total, incorrect_preds
     
     def evaluate_loss(self):
@@ -200,15 +201,19 @@ class ProjectVisionTransformer:
         self.model.train()
         return avg_val_loss
 
-    def plot_losses(self):
+    def plot_losses(self, description=''):
         plt.figure(figsize=(8, 6))
         epochs = list(range(1, len(self.train_losses) + 1))
         plt.plot(epochs, self.train_losses, marker='o', label='Training Loss')
         plt.plot(epochs, self.val_losses, marker='x', color='orange', label='Validation Loss')
-        plt.title('Training and Validation Loss Over Epochs')
+        if description == '':
+            plt.title('Training and Validation Loss Over Epochs')
+        else:
+            plt.title(f'{description} - Training and Validation Loss Over Epochs')
         plt.xlabel('Epoch')
         plt.xticks(epochs)  # Ensures correct x-axis ticks
         plt.ylabel('Loss')
+        plt.ylim(0, 1)
         plt.grid(True)
         plt.legend()
         plt.show()

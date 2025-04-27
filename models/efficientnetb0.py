@@ -5,7 +5,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import models, transforms
 import torch.nn.functional as F
-from data_loader import get_train_test_loaders
+from FGSM_trainer_gen import fgsm_trainer_iter
+import matplotlib.pyplot as plt
 
 class ProjectEfficientNet:
 
@@ -21,6 +22,8 @@ class ProjectEfficientNet:
         self.criterion = nn.CrossEntropyLoss()
         self.momentum = momentum
         self.weight_decay = weight_decay
+        self.train_losses = []
+        self.val_losses = []
 
         if optimizer == 'SGD':
             self.optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=self.momentum, weight_decay=self.weight_decay)
@@ -29,10 +32,6 @@ class ProjectEfficientNet:
 
         self.train_loader = None
         self.test_loader = None
-        self.attack_loader = None
-        self.train_set = None
-        self.test_set = None
-        self.attack_set = None
 
     def data_load(self, train_loader=None, test_loader=None):
         if train_loader is not None:
@@ -40,8 +39,10 @@ class ProjectEfficientNet:
         if test_loader is not None:
             self.test_loader = test_loader
 
-    def train(self, description=''):
+    def train(self, description='', track_loss=False):
         self.model.train()
+        self.train_losses = []
+        self.val_losses = []
 
         for epoch in range(self.epochs):
             running_loss = 0.0
@@ -61,6 +62,17 @@ class ProjectEfficientNet:
                 progress_bar.set_postfix({'loss': f'{avg_loss:.4f}'})
                 progress_bar.refresh()
 
+            if track_loss == True:
+                # Viz prep - training loss
+                epoch_train_loss = running_loss / len(self.train_loader)
+                self.train_losses.append(epoch_train_loss)
+
+                # Viz prep - validation loss
+                if self.test_loader is not None:
+                    print(f'Evaluating loss at Epoch {epoch+1}')
+                    val_loss = self.evaluate_loss()
+                    self.val_losses.append(val_loss)
+
         # Saving model
         if not os.path.exists('saved_models'):
             os.makedirs('saved_models')
@@ -74,8 +86,10 @@ class ProjectEfficientNet:
         torch.save(self.model.state_dict(), full_save_path)
         print(f'Model state dictionary saved to: {full_save_path}')
         
-    def train_adversarial(self, description=''):
+    def train_adversarial(self, description='', track_loss=False):
         self.model.train()
+        self.train_losses = []
+        self.val_losses = []
 
         for epoch in range(self.epochs):
             running_loss = 0.0
@@ -98,6 +112,17 @@ class ProjectEfficientNet:
                 avg_loss = running_loss / (i + 1)
                 progress_bar.set_postfix({'loss': f'{avg_loss:.4f}'})
                 progress_bar.refresh()
+
+            if track_loss == True:
+                # Viz prep - training loss
+                epoch_train_loss = running_loss / len(self.train_loader)
+                self.train_losses.append(epoch_train_loss)
+
+                # Viz prep - validation loss
+                if self.test_loader is not None:
+                    print(f'Evaluating loss at Epoch {epoch+1}')
+                    val_loss = self.evaluate_loss()
+                    self.val_losses.append(val_loss)
 
         # Saving model
         if not os.path.exists('saved_models'):
@@ -153,5 +178,38 @@ class ProjectEfficientNet:
                         })
 
         accuracy = 100 * correct / total
-        print(f'Test Accuracy: {accuracy:.2f}%')
+        #print(f'Test Accuracy: {accuracy:.2f}%')
         return correct, total, incorrect_preds
+
+    def evaluate_loss(self):
+        self.model.eval()
+        total_loss = 0.0
+
+        with torch.no_grad():
+            for images, labels in self.test_loader:
+                images = images.to(self.device)
+                labels = labels.to(self.device)
+                outputs = self.model(images)
+                loss = self.criterion(outputs, labels)
+                total_loss += loss.item()
+
+        avg_val_loss = total_loss / len(self.test_loader)
+        self.model.train()
+        return avg_val_loss
+
+    def plot_losses(self, description=''):
+        plt.figure(figsize=(8, 6))
+        epochs = list(range(1, len(self.train_losses) + 1))
+        plt.plot(epochs, self.train_losses, marker='o', label='Training Loss')
+        plt.plot(epochs, self.val_losses, marker='x', color='orange', label='Validation Loss')
+        if description == '':
+            plt.title('Training and Validation Loss Over Epochs')
+        else:
+            plt.title(f'{description} - Training and Validation Loss Over Epochs')
+        plt.xlabel('Epoch')
+        plt.xticks(epochs)  # Ensures correct x-axis ticks
+        plt.ylabel('Loss')
+        plt.ylim(0, 1)
+        plt.grid(True)
+        plt.legend()
+        plt.show()
