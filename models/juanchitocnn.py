@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from tqdm import tqdm
 from data_loader import get_train_test_loaders
+from FGSM_trainer_gen import fgsm_trainer_iter
 
 class ClassifierModel(nn.Module):
     def __init__(self):
@@ -82,6 +83,44 @@ class ProjectJuanchitoCNN:
 
                 # forward + backward + optimize
                 outputs = self.model(images)
+                loss = self.criterion(outputs, labels)
+                loss.backward()
+                self.optimizer.step()
+                # print statistics
+                running_loss += loss.item()
+                avg_loss = running_loss / (i + 1)
+                progress_bar.set_postfix({'loss': f'{avg_loss:.4f}'})
+                progress_bar.refresh()
+
+        # Saving model
+        if not os.path.exists('saved_models'):
+            os.makedirs('saved_models')
+            print(f"Created directory: {'saved_models'}")
+
+        if description == '':
+            full_save_path = os.path.join('saved_models', f'JuanchitoCNN.pth')
+        else:
+            full_save_path = os.path.join('saved_models', f'JuanchitoCNN_{description}.pth')
+
+        torch.save(self.model.state_dict(), full_save_path)
+        print(f'Model state dictionary saved to: {full_save_path}')
+        
+    def train_adversarial(self, description=''):
+        for epoch in range(self.epochs):
+            running_loss = 0.0
+            progress_bar = tqdm(self.train_loader, desc=f'Epoch {epoch + 1}/{self.epochs}', leave=False, unit='batch')
+            for i, (images, labels) in enumerate(progress_bar):
+                images = images.to(self.device)
+                labels = labels.to(self.device)
+
+                # zero the parameter gradients
+                self.optimizer.zero_grad()
+                
+                # perturb the images before training
+                perturbed_inputs=fgsm_trainer_iter(self.model, images, labels, self.device)
+
+                # forward + backward + optimize
+                outputs = self.model(perturbed_inputs)
                 loss = self.criterion(outputs, labels)
                 loss.backward()
                 self.optimizer.step()

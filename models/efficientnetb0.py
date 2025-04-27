@@ -73,6 +73,44 @@ class ProjectEfficientNet:
 
         torch.save(self.model.state_dict(), full_save_path)
         print(f'Model state dictionary saved to: {full_save_path}')
+        
+    def train_adversarial(self, description=''):
+        self.model.train()
+
+        for epoch in range(self.epochs):
+            running_loss = 0.0
+            progress_bar = tqdm(self.train_loader, desc=f'Epoch {epoch + 1}/{self.epochs}', leave=False, unit='batch')
+            for i, (images, labels) in enumerate(progress_bar):
+                images = images.to(self.device)
+                labels = labels.to(self.device)
+                
+                # perturb the images before training
+                perturbed_inputs=fgsm_trainer_iter(self.model, images, labels, self.device)
+                
+                
+                self.optimizer.zero_grad()
+                outputs = self.model(perturbed_inputs)
+                loss = self.criterion(outputs, labels)
+                loss.backward()
+                self.optimizer.step()
+
+                running_loss += loss.item()
+                avg_loss = running_loss / (i + 1)
+                progress_bar.set_postfix({'loss': f'{avg_loss:.4f}'})
+                progress_bar.refresh()
+
+        # Saving model
+        if not os.path.exists('saved_models'):
+            os.makedirs('saved_models')
+            print(f"Created directory: {'saved_models'}")
+
+        if description == '':
+            full_save_path = os.path.join('saved_models', f'efficientnet_b0_model.pth')
+        else:
+            full_save_path = os.path.join('saved_models', f'efficientnet_b0_model_{description}.pth')
+
+        torch.save(self.model.state_dict(), full_save_path)
+        print(f'Model state dictionary saved to: {full_save_path}')
 
     def model_load(self, file='saved_models/efficientnet_b0_model.pth', description=''):
         if description == '':
