@@ -8,6 +8,7 @@ from transformers import ViTForImageClassification, ViTImageProcessor, logging
 logging.set_verbosity_error()
 from data_loader import get_train_test_loaders
 import matplotlib.pyplot as plt
+from FGSM_trainer_gen import fgsm_trainer_iter
 
 
 class ProjectVisionTransformer:
@@ -34,15 +35,9 @@ class ProjectVisionTransformer:
 
         self.train_loader = None
         self.test_loader = None
-        self.attack_loader = None
-        self.train_set = None
-        self.test_set = None
-        self.attack_set = None
 
         self.train_losses = []
         self.val_losses = []
-        self.val_accuracies = []
-        self.best_val_acc = 0.0
 
     def data_load(self, train_loader=None, test_loader=None):
         if train_loader is not None:
@@ -71,14 +66,14 @@ class ProjectVisionTransformer:
                 progress_bar.set_postfix({'loss': f'{avg_loss:.4f}'})
                 progress_bar.refresh()
             
-        # Viz prep - training loss
-        epoch_train_loss = running_loss / len(self.train_loader)
-        self.train_losses.append(epoch_train_loss)
-        
-        # Viz prep - validation loss
-        if self.test_loader is not None:
-            val_loss = self.evaluate_loss()
-            self.val_losses.append(val_loss)
+            # Viz prep - training loss
+            epoch_train_loss = running_loss / len(self.train_loader)
+            self.train_losses.append(epoch_train_loss)
+
+            # Viz prep - validation loss
+            if self.test_loader is not None:
+                val_loss = self.evaluate_loss()
+                self.val_losses.append(val_loss)
 
         # Saving model
         if not os.path.exists('saved_models'):
@@ -95,6 +90,8 @@ class ProjectVisionTransformer:
         
     def train_adversarial(self, description=''):
         self.model.train()
+        self.train_losses = []
+        self.val_losses = []
 
         for epoch in range(self.epochs):
             running_loss = 0.0
@@ -117,14 +114,14 @@ class ProjectVisionTransformer:
                 progress_bar.set_postfix({'loss': f'{avg_loss:.4f}'})
                 progress_bar.refresh()
             
-        # Viz prep - training loss
-        epoch_train_loss = running_loss / len(self.train_loader)
-        self.train_losses.append(epoch_train_loss)
-        
-        # Viz prep - validation loss
-        if self.test_loader is not None:
-            val_loss = self.evaluate_loss()
-            self.val_losses.append(val_loss)
+            # Viz prep - training loss
+            epoch_train_loss = running_loss / len(self.train_loader)
+            self.train_losses.append(epoch_train_loss)
+
+            # Viz prep - validation loss
+            if self.test_loader is not None:
+                val_loss = self.evaluate_loss()
+                self.val_losses.append(val_loss)
 
         # Saving model
         if not os.path.exists('saved_models'):
@@ -200,20 +197,14 @@ class ProjectVisionTransformer:
         return avg_val_loss
 
     def plot_losses(self):
-        # Training
-        plt.figure(figsize = (8,6))
-        plt.plot(self.train_losses, marker = 'o')
-        plt.title('Training Loss Over Epochs')
+        plt.figure(figsize=(8, 6))
+        epochs = list(range(1, len(self.train_losses) + 1))
+        plt.plot(epochs, self.train_losses, marker='o', label='Training Loss')
+        plt.plot(epochs, self.val_losses, marker='x', color='orange', label='Validation Loss')
+        plt.title('Training and Validation Loss Over Epochs')
         plt.xlabel('Epoch')
+        plt.xticks(epochs)  # Ensures correct x-axis ticks
         plt.ylabel('Loss')
         plt.grid(True)
-        plt.show()
-        
-        # Validation
-        plt.figure(figsize = (8,6))
-        plt.plot(self.val_losses, marker='x', color='orange')
-        plt.title('Validation Loss Over Epochs')
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-        plt.grid(True)
+        plt.legend()
         plt.show()
