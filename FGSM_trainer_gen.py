@@ -24,7 +24,7 @@ def fgsm_trainer(model, inputs, labels, device, epsilon=0.1, normalization=True)
         perturbed_image_result=perturbed_image
     return perturbed_image_result
 
-def fgsm_trainer_iter(model, inputs, labels, device, epsilon=0.1, alpha=0.01, iterations=20, normalization=True):
+def fgsm_trainer_iter(model, inputs, labels, device, epsilon=0.1, alpha=0.02, iterations=5, normalization=True):
     if normalization:
         data = fgsm_trainer_denorm(inputs, device)
     else:
