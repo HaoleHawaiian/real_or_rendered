@@ -212,18 +212,22 @@ class FGSMAttacker:
                         adv_examples.append((init_pred.item(), final_pred.item(),
                                              perturbed_image.squeeze().detach().cpu().numpy()))
                     # Only show 3 images
-                    if shown_images < 3 and confidence < 15:   
-                        save_path = f"adv_examples/epsilon_{epsilon}_img_{shown_images+1}.png"
-                        self._show_image_with_confidence(perturbed_image, final_pred.item(), confidence, save_path=save_path)
-                        shown_images += 1
+                    # if shown_images < 3 and confidence < 40:   
+                    #     save_path = f"adv_examples/epsilon_{epsilon}_img_{shown_images+1}.png"
+                    #     self._show_image_with_confidence(perturbed_image, final_pred.item(), confidence, save_path=save_path)
+                    #     shown_images += 1
                 else:
                     if len(adv_examples) < 5:
                         adv_examples.append((init_pred.item(), final_pred.item(),
                                              perturbed_image.squeeze().detach().cpu().numpy()))
-                    if shown_images < 3 and confidence < 15:   #
-                        save_path = f"adv_examples/epsilon_{epsilon}_img_{shown_images+1}.png"
-                        self._show_image_with_confidence(perturbed_image, final_pred.item(), confidence, save_path=save_path)
-                        shown_images += 1
+                    # if shown_images < 3 and confidence < 40:   #
+                    #     save_path = f"adv_examples/epsilon_{epsilon}_img_{shown_images+1}.png"
+                    #     self._show_image_with_confidence(perturbed_image, final_pred.item(), confidence, save_path=save_path)
+                    #     shown_images += 1
+                if shown_images < 3 and confidence < 40:
+                    save_path = f"adv_examples/epsilon_{epsilon}_img_{shown_images+1}.png"
+                    self._show_image_with_confidence(perturbed_image, final_pred.item(), confidence, save_path=save_path)
+                    shown_images += 1
     
             if i % 2000 == 1999:
                 print(f'[{i + 1:5d}]')
