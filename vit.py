@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt
 
 # data read class
 # from data_reader import RealOrRenderedDataset
-from data_loader import get_train_test_loaders
+from data_loader import data_to_train_test_dataloaders
 
 class ViTTrainer:
     def __init__(self, train_loader, test_loader, save_path='best_vit_model.pth', num_epochs=1, lr=2e-5, weight_decay=1e-2):
@@ -63,7 +63,7 @@ class ViTTrainer:
             print(f"\nEpoch {epoch + 1} starting...")
 
             # Anaconda prompt output description
-            for images, labels, _ in tqdm(self.train_loader, desc = f"Epoch {epoch+1} - Training"):
+            for images, labels in tqdm(self.train_loader, desc = f"Epoch {epoch+1} - Training"):
                 inputs = images.to(self.device)
                 labels = labels.to(self.device)
                 
@@ -102,7 +102,7 @@ class ViTTrainer:
         total = 0
 
         with torch.no_grad():
-            for images, labels, _ in tqdm(self.val_loader, desc="Validating"):
+            for images, labels in tqdm(self.val_loader, desc="Validating"):
                 inputs = images.to(self.device)
                 labels = labels.to(self.device)
                 outputs = self.model(pixel_values=inputs).logits
@@ -128,7 +128,7 @@ class ViTTrainer:
         all_labels = []
 
         with torch.no_grad():
-            for images, labels, _ in tqdm(self.val_loader, desc="Evaluating Best Model"):
+            for images, labels in tqdm(self.val_loader, desc="Evaluating Best Model"):
                 inputs = images.to(self.device)
                 labels = labels.to(self.device)
                 outputs = self.model(pixel_values=inputs).logits
@@ -165,21 +165,22 @@ class ViTTrainer:
         plt.show()
 
 if __name__ == "__main__":
-    train_loader, test_loader, _, _, _, _ = get_train_test_loaders(
-        csv_path = 'data/train.csv',
-        image_folder = 'data/train_data',
-        #batch_size = 128,
-        split_ratio = 0.8,
-        augmentation = True
+    train_loader, test_loader = data_to_train_test_dataloaders(
+        csv_path='data/train.csv',
+        image_folder='data/train_data',
+        split_ratio=0.8,
+        train_batch_size=32,    # <-- added
+        test_batch_size=32      # <-- added
+        # no augmentation anymore!
     )
 
     trainer = ViTTrainer(
-        train_loader = train_loader,
-        test_loader = test_loader,
-        save_path = 'best_vit_model.pth',
-        num_epochs = 2,
-        lr = 2e-4,
-        weight_decay = 0.01
+        train_loader=train_loader,
+        test_loader=test_loader,
+        save_path='best_vit_model.pth',
+        num_epochs=5,
+        lr=2e-4,
+        weight_decay=0.01
     )
 
     trainer.train()
