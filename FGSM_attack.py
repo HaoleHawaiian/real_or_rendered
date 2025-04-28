@@ -122,6 +122,10 @@ Created on Tue Apr 22 20:27:29 2025
 import torch
 import torch.nn.functional as F
 from torchvision import transforms
+import matplotlib.pyplot as plt
+import numpy as np
+import torch.nn as nn
+import os
 
 class FGSMAttacker:
     def __init__(self, model, device, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]):
@@ -138,10 +142,28 @@ class FGSMAttacker:
         sign_data_grad = data_grad.sign()
         perturbed_image = image + epsilon * sign_data_grad
         return torch.clamp(perturbed_image, 0, 1)
-
+    
+    def _show_image_with_confidence(self, image, pred, pred_confidence, save_path=None):
+        # Convert tensor to numpy for plotting
+        image = image.squeeze().detach().cpu().numpy().transpose(1, 2, 0)  # Convert CHW to HWC
+        image = np.clip(image, 0, 1)  # Make sure image values are within valid range
+    
+        plt.imshow(image)
+        plt.axis('off')
+        plt.title(f"Pred: {pred}, Confidence: {pred_confidence:.2f}%")
+        
+        if save_path:
+            # Make directory if it doesn't exist
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            plt.savefig(save_path, bbox_inches='tight')
+            plt.close()  # Close after saving to avoid memory buildup
+        else:
+            plt.show()
+    
     def attack(self, test_loader, epsilon):
         correct = 0
         adv_examples = []
+        shown_images = 0 
     
         for i, (data, target) in enumerate(test_loader):
             data, target = data.to(self.device), target.to(self.device)
@@ -179,16 +201,29 @@ class FGSMAttacker:
                     final_pred = output.logits.max(1, keepdim=True)[1]
                 except:
                     final_pred = output.max(1, keepdim=True)[1]
-    
+                
+                # Calculate confidence for output image
+                softmax_output = F.softmax(output.logits, dim=1)
+                confidence = softmax_output[0][final_pred.item()] * 100 
+                
                 if final_pred.item() == label.item():
                     correct += 1
                     if epsilon == 0 and len(adv_examples) < 5:
                         adv_examples.append((init_pred.item(), final_pred.item(),
                                              perturbed_image.squeeze().detach().cpu().numpy()))
+                    # Only show 3 images
+                    if shown_images < 3 and confidence < 15:   
+                        save_path = f"adv_examples/epsilon_{epsilon}_img_{shown_images+1}.png"
+                        self._show_image_with_confidence(perturbed_image, final_pred.item(), confidence, save_path=save_path)
+                        shown_images += 1
                 else:
                     if len(adv_examples) < 5:
                         adv_examples.append((init_pred.item(), final_pred.item(),
                                              perturbed_image.squeeze().detach().cpu().numpy()))
+                    if shown_images < 3 and confidence < 15:   #
+                        save_path = f"adv_examples/epsilon_{epsilon}_img_{shown_images+1}.png"
+                        self._show_image_with_confidence(perturbed_image, final_pred.item(), confidence, save_path=save_path)
+                        shown_images += 1
     
             if i % 2000 == 1999:
                 print(f'[{i + 1:5d}]')

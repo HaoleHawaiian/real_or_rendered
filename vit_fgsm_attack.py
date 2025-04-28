@@ -22,13 +22,13 @@ def main():
         augmentation = False
     )
     
-    # Perturbation attack
-    _, _, attack_loader, _, _, _ = get_train_test_loaders(
-        csv_path = 'data/train.csv',
-        image_folder = 'data/train_data',
-        augmentation = False,
-        attack_style = 'SaltAndPepper'
-    )
+    # # Perturbation attack
+    # _, _, attack_loader, _, _, _ = get_train_test_loaders(
+    #     csv_path = 'data/train.csv',
+    #     image_folder = 'data/train_data',
+    #     augmentation = False,
+    #     attack_style = 'SaltAndPepper'
+    # )
 
     # Load the best model from running vit.py by itself
     trainer = ViTTrainer(None, test_loader, save_path='best_vit_model.pth')  
@@ -38,7 +38,7 @@ def main():
 
     # Run FGSM Attack
     attacker = FGSMAttacker(trainer.model, device)
-    epsilon = 0.01
+    epsilon = 0.1
     acc, adv_examples = attacker.attack(test_loader, epsilon)
 
     print(f"FGSM Attack completed. Accuracy after attack: {acc*100:.2f}%")
