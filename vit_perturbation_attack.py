@@ -8,6 +8,20 @@ Created on Thu Apr 24 16:12:22 2025
 from vit import ViTTrainer
 from data_loader import get_train_test_loaders
 import torch
+import matplotlib as plt
+
+
+def plot_losses(train_losses, val_losses):
+    plt.figure(figsize=(10, 6))
+    plt.plot(train_losses, marker='o', color='blue', label='Training Loss')
+    plt.plot(val_losses, marker='x', color='orange', label='Validation Loss')
+    plt.title('DeiT - Training and Validation Loss Over Epochs')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -42,6 +56,9 @@ def main():
 
     acc = correct / total
     print(f"Accuracy on {attack_style} perturbed data: {acc * 100:.2f}%")
+    
+    # Plot training/validation loss curves from trainer
+    plot_losses(trainer.train_losses, trainer.val_losses)
 
 if __name__ == "__main__":
     main()

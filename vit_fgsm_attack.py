@@ -9,7 +9,22 @@ import torch
 from vit import ViTTrainer
 from FGSM_attack import FGSMAttacker
 from data_loader import get_train_test_loaders
+import matplotlib as plt
 
+
+def plot_losses(train_losses, val_losses):
+    plt.figure(figsize=(10, 6))
+    plt.plot(train_losses, marker='o', color='blue', label='Training Loss')
+    plt.plot(val_losses, marker='x', color='orange', label='Validation Loss')
+    plt.title('DeiT - Training and Validation Loss Over Epochs')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+    
+    
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -22,14 +37,6 @@ def main():
         augmentation = False
     )
     
-    # # Perturbation attack
-    # _, _, attack_loader, _, _, _ = get_train_test_loaders(
-    #     csv_path = 'data/train.csv',
-    #     image_folder = 'data/train_data',
-    #     augmentation = False,
-    #     attack_style = 'SaltAndPepper'
-    # )
-
     # Load the best model from running vit.py by itself
     trainer = ViTTrainer(None, test_loader, save_path='best_vit_model.pth')  
     trainer.model.load_state_dict(torch.load(trainer.save_path, map_location=device))
@@ -38,10 +45,13 @@ def main():
 
     # Run FGSM Attack
     attacker = FGSMAttacker(trainer.model, device)
-    epsilon = 0.1
+    epsilon = 0.01
     acc, adv_examples = attacker.attack(test_loader, epsilon)
 
     print(f"FGSM Attack completed. Accuracy after attack: {acc*100:.2f}%")
-
+    
+    # Plot training/validation loss curves from trainer
+    plot_losses(trainer.train_losses, trainer.val_losses)
+    
 if __name__ == "__main__":
     main()
