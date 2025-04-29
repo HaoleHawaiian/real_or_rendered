@@ -11,7 +11,7 @@ import torch
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    attack_style = 'RandomShadow'
+    attack_style = 'Gaussnoise'
 
     # Load the attack loader with SaltAndPepper noise applied
     _, _, attack_loader, _, _, _ = get_train_test_loaders(
@@ -33,7 +33,7 @@ def main():
     correct = 0
 
     with torch.no_grad():
-        for images, labels, _ in attack_loader:
+        for images, labels in attack_loader:
             images, labels = images.to(device), labels.to(device)
             outputs = trainer.model(images)
             preds = outputs.logits.argmax(dim=1)

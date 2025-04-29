@@ -146,41 +146,35 @@ class ViTTrainer:
             f.write(report)
     
     def plot_losses(self):
-        # Plot Training Loss
-        plt.figure(figsize = (8,6))
-        plt.plot(self.train_losses, marker='o', color='blue')
-        plt.title('Training Loss Over Epochs')
+        plt.figure(figsize=(10, 6))
+        
+        plt.plot(self.train_losses, marker='o', color='blue', label='Training Loss')
+        plt.plot(self.val_losses, marker='x', color='orange', label='Validation Loss')
+        
+        plt.title('DeiT - Training and Validation Loss Over Epochs')
         plt.xlabel('Epoch')
         plt.ylabel('Loss')
+        plt.legend()
         plt.grid(True)
-        plt.show()
-    
-        # Plot Validation Loss
-        plt.figure(figsize = (8,6))
-        plt.plot(self.val_losses, marker='x', color='orange')
-        plt.title('Validation Loss Over Epochs')
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-        plt.grid(True)
+        plt.tight_layout()
         plt.show()
 
 if __name__ == "__main__":
     train_loader, test_loader = data_to_train_test_dataloaders(
         csv_path='data/train.csv',
-        image_folder='data/train_data',
-        split_ratio=0.8,
-        train_batch_size=32,    # <-- added
-        test_batch_size=32      # <-- added
-        # no augmentation anymore!
+        image_folder = 'data/train_data',
+        split_ratio = 0.8,
+        train_batch_size = 64,
+        test_batch_size = 64
     )
 
     trainer = ViTTrainer(
-        train_loader=train_loader,
-        test_loader=test_loader,
-        save_path='best_vit_model.pth',
-        num_epochs=5,
-        lr=2e-4,
-        weight_decay=0.01
+        train_loader = train_loader,
+        test_loader = test_loader,
+        save_path = 'best_vit_model.pth',
+        num_epochs = 5,
+        lr = 2e-4,
+        weight_decay = 0.01
     )
 
     trainer.train()

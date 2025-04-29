@@ -1,8 +1,8 @@
               precision    recall  f1-score   support
 
-        Real     0.9441    0.9024    0.9228      8009
-    Rendered     0.9062    0.9464    0.9258      7981
+        Real     0.9512    0.9263    0.9386      8009
+    Rendered     0.9280    0.9523    0.9400      7981
 
-    accuracy                         0.9243     15990
-   macro avg     0.9251    0.9244    0.9243     15990
-weighted avg     0.9252    0.9243    0.9243     15990
+    accuracy                         0.9393     15990
+   macro avg     0.9396    0.9393    0.9393     15990
+weighted avg     0.9396    0.9393    0.9393     15990
