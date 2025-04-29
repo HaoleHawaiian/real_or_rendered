@@ -230,7 +230,7 @@ class FGSMAttacker:
                                              image_denorm.squeeze().detach().cpu().numpy()))
                         adv_examples.append((init_pred.item(), final_pred.item(),
                                              perturbed_image.squeeze().detach().cpu().numpy()))
-<<<<<<< HEAD
+
                     # if shown_images < 3 and confidence < 40:   #
                     #     save_path = f"adv_examples/epsilon_{epsilon}_img_{shown_images+1}.png"
                     #     self._show_image_with_confidence(perturbed_image, final_pred.item(), confidence, save_path=save_path)
@@ -239,16 +239,16 @@ class FGSMAttacker:
                     save_path = f"adv_examples/epsilon_{epsilon}_img_{shown_images+1}.png"
                     self._show_image_with_confidence(perturbed_image, final_pred.item(), confidence, save_path=save_path)
                     shown_images += 1
-=======
-                        perturbation_list.append((init_pred.item(), final_pred.item(),
+
+                    perturbation_list.append((init_pred.item(), final_pred.item(),
                                              perturbation.squeeze().detach().cpu().numpy()))
-                        perturbation_list_2.append((init_pred.item(), final_pred.item(),
+                    perturbation_list_2.append((init_pred.item(), final_pred.item(),
                                              (perturbed_image-image_denorm).squeeze().detach().cpu().numpy()))
                     if shown_images < 3 and confidence < 15:   #
                         save_path = f"adv_examples/epsilon_{epsilon}_img_{shown_images+1}.png"
                         self._show_image_with_confidence(perturbed_image, final_pred.item(), confidence, save_path=save_path)
                         shown_images += 1
->>>>>>> 1f6deae504b77d15c6d35107a89513fa4a655fc5
+
     
             if i % 2000 == 1999:
                 print(f'[{i + 1:5d}]')
