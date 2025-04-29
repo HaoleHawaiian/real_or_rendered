@@ -126,6 +126,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch.nn as nn
 import os
+import matplotlib.pyplot as plt
 
 class FGSMAttacker:
     def __init__(self, model, device, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]):
@@ -243,4 +244,26 @@ class FGSMAttacker:
     
         final_acc = correct / float(len(test_loader.dataset))
         print(f"Epsilon: {epsilon}\tTest Accuracy = {correct} / {len(test_loader.dataset)} = {final_acc}")
-        return final_acc, original_images, adv_examples, perturbation_list, perturbation_list_2
+        cnt = 0
+        plt.figure(figsize=(8,10))
+        for i in range(len(adv_examples)):
+            _,_,origimg = original_images[i]
+            _,_,perturb = perturbation_list[i]
+            orig,adv,ex = adv_examples[i]
+            image_array=[origimg,perturb*5,ex]
+            for j in range(3):
+                cnt += 1
+                plt.subplot(len(adv_examples),3,cnt)
+                plt.xticks([], [])
+                plt.yticks([], [])
+                if j==0:
+                    plt.ylabel(f"Image:{i}" , fontsize=14)
+                    plt.title(f"Original Image")
+                if j==1:
+                    plt.title(f"Applied Perturbation, Scaled x5")
+                if j==2:
+                    plt.title(f"Perturbed Image")
+                plt.imshow(np.moveaxis(image_array[j], 0, -1))
+        plt.tight_layout()
+        plt.show()
+        return final_acc, original_images
