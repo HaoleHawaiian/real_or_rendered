@@ -31,8 +31,10 @@ def fgsm_trainer_iter(model, inputs, labels, device, epsilon=0.1, alpha=0.02, it
         data=inputs
     delta = torch.zeros_like(data, requires_grad=True)
     for i in range(iterations):
-    
-        loss_perturbed = torch.nn.CrossEntropyLoss()(model(data + delta), labels)
+        try:
+            loss_perturbed = torch.nn.CrossEntropyLoss()(model(data + delta).logits, labels)
+        except:
+            loss_perturbed = torch.nn.CrossEntropyLoss()(model(data + delta), labels)
         loss_perturbed.backward()
         delta.data = (delta + alpha*delta.grad.detach().sign()).clamp(-epsilon,epsilon)
         delta.grad.zero_()
